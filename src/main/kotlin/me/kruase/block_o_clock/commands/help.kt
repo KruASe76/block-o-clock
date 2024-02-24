@@ -1,8 +1,8 @@
-package me.kruase.kotlin_plugin_template.commands
+package me.kruase.block_o_clock.commands
 
 import org.bukkit.command.CommandSender
-import me.kruase.kotlin_plugin_template.Template.Companion.userConfig
-import me.kruase.kotlin_plugin_template.util.hasPluginPermission
+import me.kruase.block_o_clock.BlockOClock.Companion.userConfig
+import me.kruase.block_o_clock.util.hasPluginPermission
 
 
 fun help(sender: CommandSender, args: Array<out String>) {

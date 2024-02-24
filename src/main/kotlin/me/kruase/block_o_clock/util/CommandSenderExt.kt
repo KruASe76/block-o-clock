@@ -1,7 +1,7 @@
-package me.kruase.kotlin_plugin_template.util
+package me.kruase.block_o_clock.util
 
 import org.bukkit.command.CommandSender
-import me.kruase.kotlin_plugin_template.Template.Companion.instance
+import me.kruase.block_o_clock.BlockOClock.Companion.instance
 
 
 fun CommandSender.hasPluginPermission(name: String): Boolean {

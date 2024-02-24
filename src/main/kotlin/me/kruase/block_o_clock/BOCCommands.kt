@@ -1,15 +1,15 @@
-package me.kruase.kotlin_plugin_template
+package me.kruase.block_o_clock
 
 import org.bukkit.command.TabExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.Command
 import org.bukkit.entity.Player
 import org.bukkit.ChatColor
-import me.kruase.kotlin_plugin_template.commands.*
-import me.kruase.kotlin_plugin_template.util.hasPluginPermission
+import me.kruase.block_o_clock.commands.*
+import me.kruase.block_o_clock.util.hasPluginPermission
 
 
-class TemplateCommands : TabExecutor {
+class BOCCommands : TabExecutor {
     override fun onTabComplete(
         sender: CommandSender,
         command: Command,
@@ -18,11 +18,11 @@ class TemplateCommands : TabExecutor {
     ): List<String> {
         val fullArgs = args.dropLast(1)
         return when (fullArgs.getOrNull(0)) {
-            null -> Template.userConfig.messages.help.keys
+            null -> BlockOClock.userConfig.messages.help.keys
                 .filter { sender.hasPluginPermission(it.replace("-", ".")) } - "header"
             "help" -> when {
                 sender.hasPluginPermission("help") -> when (fullArgs.getOrNull(1)) {
-                    null -> Template.userConfig.messages.help.keys
+                    null -> BlockOClock.userConfig.messages.help.keys
                         .filter { sender.hasPluginPermission(it.replace("-", ".")) } - "header"
                     else -> listOf()
                 }
@@ -39,16 +39,16 @@ class TemplateCommands : TabExecutor {
                 "help" -> help(sender, args.drop(1).toTypedArray())
                 "reload" -> {
                     if (!sender.hasPluginPermission("reload")) throw UnsupportedOperationException()
-                    Template.userConfig = Template.instance.getUserConfig()
+                    BlockOClock.userConfig = BlockOClock.instance.getUserConfig()
                 }
             }
         } catch (e: UnsupportedOperationException) {
             sender.sendMessage(
-                "${ChatColor.RED}${Template.userConfig.messages.error["no-permission"] ?: "Error: no-permission"}"
+                "${ChatColor.RED}${BlockOClock.userConfig.messages.error["no-permission"] ?: "Error: no-permission"}"
             )
         } catch (e: IllegalArgumentException) {
             sender.sendMessage(
-                "${ChatColor.RED}${Template.userConfig.messages.error["invalid-command"] ?: "Error: invalid-command"}"
+                "${ChatColor.RED}${BlockOClock.userConfig.messages.error["invalid-command"] ?: "Error: invalid-command"}"
             )
         } catch (e: IllegalStateException) {
             // "Unknown error" should never happen
@@ -62,7 +62,7 @@ class TemplateCommands : TabExecutor {
         when (sender) {
             is Player -> command(sender, args)
             else -> sender.sendMessage(
-                "${ChatColor.RED}${Template.userConfig.messages.error["player-only"] ?: "Error: player-only"}"
+                "${ChatColor.RED}${BlockOClock.userConfig.messages.error["player-only"] ?: "Error: player-only"}"
             )
         }
     }

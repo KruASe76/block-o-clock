@@ -1,4 +1,4 @@
-# kotlin-plugin-template
+# block-o-clock
 
 A Spigot (Bukkit) Minecraft plugin that...
 
@@ -13,12 +13,12 @@ A Spigot (Bukkit) Minecraft plugin that...
 
 ### Commands
 
-`/template` is the main plugin command, which has the alias `/tmp`.
+`/blockoclock` is the main plugin command, which has the alias `/boc`.
 
 | Command               | Description                                                   |
 |-----------------------|---------------------------------------------------------------|
-| `/tmp help [command]` | Show help for given command, for available commands otherwise |
-| `/tmp reload`         | Reload config                                                 |
+| `/boc help [command]` | Show help for given command, for available commands otherwise |
+| `/boc reload`         | Reload config                                                 |
 
 
 ## Configuration ([default](/src/main/resources/config.yml))
@@ -31,11 +31,11 @@ A Spigot (Bukkit) Minecraft plugin that...
 
 ## Permissions
 
-| Permission node   | Default | Description                                               |
-|-------------------|---------|-----------------------------------------------------------|
-| `template.help`   | true    | Allows to use `/tmp help` (lists only available commands) |
-| `template.reload` | op      | Allows to use `/tmp reload`                               |
-| `template.admin`  | op      | Refers to `template.reload` by default                    |
+| Permission node      | Default | Description                                               |
+|----------------------|---------|-----------------------------------------------------------|
+| `blockoclock.help`   | true    | Allows to use `/boc help` (lists only available commands) |
+| `blockoclock.reload` | op      | Allows to use `/boc reload`                               |
+| `blockoclock.admin`  | op      | Refers to `blockoclock.reload` by default                 |
 
 
 ## Special thanks to:

@@ -1,32 +1,32 @@
-name: Template
+name: BlockOClock
 version: '${project.version}'
 api-version: '${mcApi.version}'
-main: me.kruase.kotlin_plugin_template.Template
+main: me.kruase.block_o_clock.BlockOClock
 authors: [ KruASe ]
 
-description: Template project for kotlin spigot plugins
+description: Allows to create clocks from blocks in the world
 
 commands:
-    template:
-        description: Main Template plugin command
-        permission: template.help
+    blockoclock:
+        description: Main BlockOClock plugin command
+        permission: blockoclock.help
         usage: |-
             §7Run §6/help <command> [n] §7to get page n of help
             §a/<command> §6help §a[command] §r- Show help for given command, for available commands otherwise
             §a/<command> §6reload §r- Reload config
             §cWARNING: §eCommands listed here might be unavailable for you, to get help for available commands run §a/<command> help
         aliases:
-            - tmp
+            - boc
 
 permissions:
-    template.help:
-        description: Allows to use §a/tmp §6help §r(lists only available commands)
+    blockoclock.help:
+        description: Allows to use §a/boc §6help §r(lists only available commands)
         default: true
-    template.reload:
-        description: Allows to use §a/tmp §6reload
+    blockoclock.reload:
+        description: Allows to use §a/boc §6reload
         default: op
-    template.admin:
-        description: Refers to §template.reload §rby default
+    blockoclock.admin:
+        description: Refers to §blockoclock.reload §rby default
         default: op
         children:
-            template.reload: true
+            blockoclock.reload: true

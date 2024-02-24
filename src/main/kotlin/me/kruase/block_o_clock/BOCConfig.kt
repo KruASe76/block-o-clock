@@ -1,4 +1,4 @@
-package me.kruase.kotlin_plugin_template
+package me.kruase.block_o_clock
 
 import java.io.File
 import org.bukkit.configuration.file.FileConfiguration
@@ -14,31 +14,31 @@ val allPaths = listOf(
 )
 
 
-data class TemplateConfig(private val config: FileConfiguration) {
+data class BOCConfig(private val config: FileConfiguration) {
     val messages = MessagesConfig(config)
 }
 
 
-fun Template.getUserConfig(): TemplateConfig {
+fun BlockOClock.getUserConfig(): BOCConfig {
     return try {
         saveDefaultConfig()
         reloadConfig()
 
         if ((allPaths - config.getKeys(true)).isNotEmpty()) throw NullPointerException()
 
-        TemplateConfig(config)
+        BOCConfig(config)
     } catch (e: Exception) {
         when (e) {
             is NullPointerException, is NumberFormatException -> {
                 newDefaultConfig()
-                TemplateConfig(config)
+                BOCConfig(config)
             }
             else -> throw e
         }
     }.also { logger.info("Config loaded!") }
 }
 
-fun Template.newDefaultConfig() {
+fun BlockOClock.newDefaultConfig() {
     logger.severe("Invalid $name config detected! Creating a new one (default)...")
     File(dataFolder, "config.yml").renameTo(
         File(dataFolder, "config.yml.old-${System.currentTimeMillis()}")
