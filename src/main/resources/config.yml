@@ -4,7 +4,7 @@ messages: # Can be used to add translation
         no-permission: Not enough permissions to call this command!
         invalid-command: Invalid command!
         player-only: This command can only be called by a player!
-    help: # Not intended to be edited
+    help: # Not intended to be edited (unless adding translation)
         header: §7-------- §6[§aBlockOClock§6] §7--------------------------
         help: §a/boc §6help §a[command] §r- Show help for given command, for available commands otherwise
         reload: §a/boc §6reload §r- Reload config
