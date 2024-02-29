@@ -1,8 +1,8 @@
 package me.kruase.block_o_clock.commands
 
-import org.bukkit.command.CommandSender
 import me.kruase.block_o_clock.BlockOClock.Companion.userConfig
-import me.kruase.block_o_clock.util.hasPluginPermission
+import me.kruase.block_o_clock.hasPluginPermission
+import org.bukkit.command.CommandSender
 
 
 fun help(sender: CommandSender, args: Array<out String>) {
@@ -13,8 +13,8 @@ fun help(sender: CommandSender, args: Array<out String>) {
     when (args.getOrNull(0)) {
         null -> userConfig.messages.help.keys
             .filter { sender.hasPluginPermission(it.replace("-", ".")) || it == "header"}
-            .forEach { sender.sendMessage(arrayOf(userConfig.messages.help[it])) }
-        in userConfig.messages.help.keys - "header" -> sender.sendMessage(arrayOf(userConfig.messages.help[args[0]]))
+            .forEach { sender.sendMessage(userConfig.messages.help[it]) }
+        in userConfig.messages.help.keys - "header" -> sender.sendMessage(userConfig.messages.help[args[0]])
         else -> throw IllegalArgumentException()
     }
 }

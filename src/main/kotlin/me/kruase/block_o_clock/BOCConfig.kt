@@ -1,13 +1,14 @@
 package me.kruase.block_o_clock
 
-import java.io.File
 import org.bukkit.configuration.file.FileConfiguration
+import java.io.File
 
 
 val allPaths = listOf(
+    "list-page-size",
     "messages.error.no-permission",
     "messages.error.invalid-command",
-    "messages.error.player-only",
+    "messages.error.synced-clock-set",
     "messages.help.header",
     "messages.help.help",
     "messages.help.reload",
@@ -15,6 +16,7 @@ val allPaths = listOf(
 
 
 data class BOCConfig(private val config: FileConfiguration) {
+    val listPageSize = config.getInt("list-page-size")
     val messages = MessagesConfig(config)
 }
 

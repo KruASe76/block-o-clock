@@ -1,12 +1,10 @@
 package me.kruase.block_o_clock
 
-import org.bukkit.command.TabExecutor
-import org.bukkit.command.CommandSender
-import org.bukkit.command.Command
-import org.bukkit.entity.Player
+import me.kruase.block_o_clock.commands.help
 import org.bukkit.ChatColor
-import me.kruase.block_o_clock.commands.*
-import me.kruase.block_o_clock.util.hasPluginPermission
+import org.bukkit.command.Command
+import org.bukkit.command.CommandSender
+import org.bukkit.command.TabExecutor
 
 
 class BOCCommands : TabExecutor {
@@ -56,14 +54,5 @@ class BOCCommands : TabExecutor {
         }
 
         return true
-    }
-
-    private fun playerOnly(sender: CommandSender, command: (Player, Array<out String>) -> Unit, args: Array<out String>) {
-        when (sender) {
-            is Player -> command(sender, args)
-            else -> sender.sendMessage(
-                "${ChatColor.RED}${BlockOClock.userConfig.messages.error["player-only"] ?: "Error: player-only"}"
-            )
-        }
     }
 }

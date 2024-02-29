@@ -1,5 +1,8 @@
 # block-o-clock
 
+![](https://img.shields.io/badge/MINECRAFT-1.20-966C4A?style=for-the-badge&labelColor=53AC56)
+![](https://img.shields.io/badge/JAVA-17-5283A2?style=for-the-badge&labelColor=E86F00)
+
 A Spigot (Bukkit) Minecraft plugin that allows to create clocks of blocks in the world
 
 
@@ -27,28 +30,37 @@ A Spigot (Bukkit) Minecraft plugin that allows to create clocks of blocks in the
 
 ### Commands
 
-`/blockoclock` is the main plugin command, which has the alias `/boc`.
+`/blockoclock` is the main plugin command, which has an alias `/boc`.
 
-| Command               | Description                                                   |
-|-----------------------|---------------------------------------------------------------|
-| `/boc help [command]` | Show help for given command, for available commands otherwise |
-| `/boc reload`         | Reload config                                                 |
+| Command                                 | Description                                                                                            |
+|-----------------------------------------|--------------------------------------------------------------------------------------------------------|
+| `/boc help [command]`                   | Show help for given command, for available commands otherwise                                          |
+| `/boc reload`                           | Reload config                                                                                          |
+| `/boc create <*settings>`               | Create new clock in the world (and print its ID)                                                       |
+| `/boc list <nearest\|ordered> [page=1]` | List all clocks in the world (with IDs) with given sorting                                             |
+| `/boc delete <id>`                      | Delete the clock (and fills its blocks with air)                                                       |
+| `/boc start <id>`                       | Start stopped clock                                                                                    |
+| `/boc stop <id>`                        | Stop the clock (it won't update until `/boc start`)                                                    |
+| `/boc set time <id> <hh:mm:ss.tt>`      | Set given time on **non-synced** clock (if the time unit is not displayed its value can be just zeros) |
+| `/boc set direction <id> <up\|down>`    | Set given direction on **non-synced** clock                                                            |
 
 ### `/boc create` syntax
 
-> `/boc create <xyz> <+|-><x|y|z> <+|-><x|y|z> <hour|min|sec|tick> <hour|min|sec|tick> <(timezone)|none> <block> <block> <digital|minecraft> [size=3]`
+> `/boc create <dim> <xyz> ±<x|y|z> ±<x|y|z> <hour|min|sec|tick> <hour|min|sec|tick> <±hh[:mm]|none> <block|none> <block|none> <font> [size=3]`
 
+- `<dim>` - minecraft dimension: `overworld`, `nether`, `end`
 - `<xyz>` - coordinates of top left corner of the display area
-- `<+|-><x|y|z>` _(2 times)_ - directions of the horizontal and vertical axes respectively (example: `-x +z`)
-- `<hour|min|sec|tick>` _(2 times)_ - largest and smallest time units to display (example: `min tick` will show `MM:SS.TT`)
-- `<(timezone)|none>` - timezone to sync with (examples: `-5`, `+3`, `+10:45`) or `none` for manual control
-- `<block>` _(2 times)_ - foreground and background block IDs respectively
-- `<digital|minecraft>` - font type: `digital` stands for usual seven-segment-like font
-- `[size=3]` - `digital` font size, default is `3` (`minecraft` font is not sizeable)
+- `±<x|y|z>` _(2 times)_ - directions of the horizontal and vertical axes respectively (example: `-x +z`)
+- `<hour|min|sec|tick>` _(2 times)_ - largest and smallest time units to display (example: `min tick` will show `mm:ss.tt`)
+- `<±hh[:mm]|none>` - timezone to sync with (examples: `+03`, `-10`, `+06:45`) or `none` for manual control
+- `<block|none>` _(2 times)_ - foreground and background block IDs respectively (`none` will not fill, while `air` will fill with air)
+- `<font>` - font type: `minecraft`, `digital` (seven-segment-like)
+- `[size=3]` - `digital` font size, default is `3` (ignored if `minecraft` font is specified)
 
 
 ## Configuration ([default](/src/main/resources/config.yml))
 
+- `/boc list` page size
 - Plugin messages [WIP]
   - info
   - error
