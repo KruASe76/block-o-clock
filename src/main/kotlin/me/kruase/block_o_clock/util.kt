@@ -12,14 +12,20 @@ fun String.fullTitlecase(): String {  // titlecase but all non-first letters are
     return lowercase().replaceFirstChar { it.titlecase() }
 }
 
-val NANOS_PER_TICK = 10000000
-val TICKS_PER_SECOND = 20
-val SECONDS_PER_MINUTE = 60
-val MINUTES_PER_HOUR = 60
-val HOURS_PER_DAY = 24
-val TICKS_PER_DAY = TICKS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY
-val TICKS_PER_HOUR = TICKS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR
-val TICKS_PER_MINUTE = TICKS_PER_SECOND * SECONDS_PER_MINUTE
+
+fun <T> List<List<T>>.transpose(): List<List<T>> {
+    return (this[0].indices).map { i -> (this.indices).map { j -> this[j][i] } }
+}
+
+
+const val NANOS_PER_TICK = 10000000
+const val TICKS_PER_SECOND = 20
+const val SECONDS_PER_MINUTE = 60
+const val MINUTES_PER_HOUR = 60
+const val HOURS_PER_DAY = 24
+const val TICKS_PER_DAY = TICKS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY
+const val TICKS_PER_HOUR = TICKS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR
+const val TICKS_PER_MINUTE = TICKS_PER_SECOND * SECONDS_PER_MINUTE
 
 fun LocalTime.plusTicks(ticksToAdd: Long): LocalTime {
     if (ticksToAdd == 0L) return this

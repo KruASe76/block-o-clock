@@ -5,6 +5,7 @@ import java.io.File
 
 
 val allPaths = listOf(
+    "default-font-size",
     "list-page-size",
     "messages.error.no-permission",
     "messages.error.invalid-command",
@@ -16,6 +17,7 @@ val allPaths = listOf(
 
 
 data class BOCConfig(private val config: FileConfiguration) {
+    val defaultFontSize = config.getInt("default-font-size")
     val listPageSize = config.getInt("list-page-size")
     val messages = MessagesConfig(config)
 }

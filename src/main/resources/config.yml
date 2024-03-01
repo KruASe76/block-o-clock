@@ -1,3 +1,4 @@
+default-font-size: 3
 list-page-size: 5
 messages: # Can be used to add translation
     info: # To turn off certain messages leave the field empty (not empty quotes!)

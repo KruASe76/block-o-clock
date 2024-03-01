@@ -8,22 +8,23 @@ A Spigot (Bukkit) Minecraft plugin that allows to create clocks of blocks in the
 
 ## Features [WIP]
 
-- [ ] Clock creation with lots of settings
+- [x] Clock creation with lots of settings
   - location in the world
   - time format
   - time zone / non-synced (acts like a timer or a stopwatch)
   - foreground and background block types
   - font and its size
-- [ ] Clock list display
+- [x] Clock list display
   - in order
   - sorted by distance
-- [ ] Clock deletion
-- [ ] Clock starting and stopping (freezing)
-- [ ] Non-synced clock settings
+- [x] Clock deletion
+- [x] Clock starting and stopping (freezing)
+- [x] Non-synced clock settings
   - time
   - direction
 - [ ] Clock info serialization into custom config to keep running after server restart
 - [ ] Handy tab-completion
+- [ ] Clock protection (players cannot break clock's blocks)
 
 
 ## Usage
@@ -60,6 +61,7 @@ A Spigot (Bukkit) Minecraft plugin that allows to create clocks of blocks in the
 
 ## Configuration ([default](/src/main/resources/config.yml))
 
+- Default `digital` font size
 - `/boc list` page size
 - Plugin messages [WIP]
   - info

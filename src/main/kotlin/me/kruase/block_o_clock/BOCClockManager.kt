@@ -12,9 +12,30 @@ object BOCClockManager {
     private val clocks = mutableListOf<BOCClock>()
 
     fun create(
-        // ...
+        location: Location,
+        widthDirection: AxisDirection,
+        heightDirection: AxisDirection,
+        timeFormatter: DateTimeFormatter,
+        timeZoneId: ZoneId?,
+        foregroundMaterial: Material,
+        backgroundMaterial: Material,
+        fontType: FontType,
+        fontSize: Int,
     ): Int {
-        return 0
+        clocks.add(
+            when (timeZoneId) {
+                null -> NonSyncedClock(
+                    location, widthDirection, heightDirection, timeFormatter,
+                    foregroundMaterial, backgroundMaterial, fontType, fontSize
+                )
+                else -> SyncedClock(
+                    location, widthDirection, heightDirection, timeFormatter,
+                    foregroundMaterial, backgroundMaterial, fontType, fontSize,
+                    timeZoneId
+                )
+            }
+        )
+        return clocks.size - 1
     }
 
     fun delete(id: Int) {
@@ -72,69 +93,131 @@ object BOCClockManager {
 }
 
 
-abstract class BOCClock {
-    abstract val location: Location
-    protected abstract val widthDirection: AxisDirection
-    protected abstract val heightDirection: AxisDirection
-    protected abstract val timeFormatter: DateTimeFormatter
-    protected abstract val foregroundMaterial: Material
-    protected abstract val backgroundMaterial: Material
-    protected abstract val fontType: FontType
-    protected abstract val fontSize: Int
-
+abstract class BOCClock(
+    val location: Location,
+    widthDirection: AxisDirection,
+    heightDirection: AxisDirection,
+    private val timeFormatter: DateTimeFormatter,
+    private val foregroundMaterial: Material,
+    private val backgroundMaterial: Material,
+    fontType: FontType,
+    fontSize: Int
+) {
     abstract var isRunning: Boolean
 
-    private var display: String = ""
+    private var display: String = LocalTime.MIN.format(timeFormatter)
+    private var grid: List<List<Boolean>> =
+        display.count { it.isDigit() }.let { digitCount ->
+            when(fontType) {
+                // display width: digits + delimiters (1 pixel each) + spaces between characters
+                FontType.DIGITAL -> List(
+                    digitCount * fontSize + (display.length - digitCount) + (display.length - 1)
+                ) { List(fontSize * 2 - 1) { false } }
+                FontType.MINECRAFT -> List(
+                    digitCount * BOCRender.MINECRAFT_FONT_WIDTH + (display.length - digitCount) + (display.length - 1)
+                ) { List(BOCRender.MINECRAFT_FONT_HEIGHT) { false } }
+            }
+        }
+
+    private val blockLocations: List<List<Location>> = run {
+        val widthOffsetLocation = Location(
+            location.world,
+            (if (widthDirection.axis == Axis.X) widthDirection.sign.raw else 0).toDouble(),
+            (if (widthDirection.axis == Axis.Y) widthDirection.sign.raw else 0).toDouble(),
+            (if (widthDirection.axis == Axis.Z) widthDirection.sign.raw else 0).toDouble()
+        )
+        val heightOffsetLocation = Location(
+            location.world,
+            (if (heightDirection.axis == Axis.X) heightDirection.sign.raw else 0).toDouble(),
+            (if (heightDirection.axis == Axis.Y) heightDirection.sign.raw else 0).toDouble(),
+            (if (heightDirection.axis == Axis.Z) heightDirection.sign.raw else 0).toDouble()
+        )
+
+        List(grid.size) { widthOffset ->
+            List(grid[0].size) { heightOffset ->
+                location  // TODO: test if works as intended
+                    .clone()
+                    .add(widthOffsetLocation.multiply(widthOffset.toDouble()))
+                    .add(heightOffsetLocation.multiply(heightOffset.toDouble()))
+            }
+        }
+    }
+
+    private val font: Map<Char, List<List<Boolean>>> =
+        when(fontType) {
+            FontType.DIGITAL -> BOCRender.digitalFont(fontSize)
+            FontType.MINECRAFT -> BOCRender.minecraftFont
+        }
 
     abstract fun update()
 
-    fun update(time: LocalTime) {
+    protected fun update(time: LocalTime) {
         if (!isRunning) return
 
         val newDisplay = time.format(timeFormatter)
 
         if (display == newDisplay) return
 
-        TODO()
+        val newGrid = display
+            .map { char -> font[char]!! }
+            .fold(emptyList<List<Boolean>>()) { list1, list2 -> list1 + listOf(List(grid[0].size) { false }) + list2 }
+
+        blockLocations.forEachIndexed { width, locationList ->
+            locationList.forEachIndexed { height, location ->
+                if (grid[width][height] != newGrid[width][height])  // update only necessary blocks for optimization
+                    location.block.type = if (newGrid[width][height]) foregroundMaterial else backgroundMaterial
+            }
+        }
 
         display = newDisplay
+        grid = newGrid
     }
 
     fun destroy() {
-        TODO()
+        blockLocations.flatten().forEach { it.block.type = Material.AIR }
     }
 }
 
 
 class SyncedClock(
-    override val location: Location,
-    override val widthDirection: AxisDirection,
-    override val heightDirection: AxisDirection,
-    override val timeFormatter: DateTimeFormatter,
-    override val foregroundMaterial: Material,
-    override val backgroundMaterial: Material,
-    override val fontType: FontType,
-    override val fontSize: Int = 3,
+    location: Location,
+    widthDirection: AxisDirection,
+    heightDirection: AxisDirection,
+    timeFormatter: DateTimeFormatter,
+    foregroundMaterial: Material,
+    backgroundMaterial: Material,
+    fontType: FontType,
+    fontSize: Int,
 
     private val timeZoneId: ZoneId
-) : BOCClock() {
+) : BOCClock(
+    location, widthDirection, heightDirection, timeFormatter,
+    foregroundMaterial, backgroundMaterial, fontType, fontSize
+) {
     override var isRunning: Boolean = true
 
     override fun update() {
         super.update(LocalTime.now(timeZoneId))
     }
+
+    init {
+        update()
+    }
 }
 
 class NonSyncedClock(
-    override val location: Location,
-    override val widthDirection: AxisDirection,
-    override val heightDirection: AxisDirection,
-    override val timeFormatter: DateTimeFormatter,
-    override val foregroundMaterial: Material,
-    override val backgroundMaterial: Material,
-    override val fontType: FontType,
-    override val fontSize: Int = 3
-) : BOCClock() {
+    location: Location,
+    widthDirection: AxisDirection,
+    heightDirection: AxisDirection,
+    timeFormatter: DateTimeFormatter,
+    foregroundMaterial: Material,
+    backgroundMaterial: Material,
+    fontType: FontType,
+    fontSize: Int,
+) : BOCClock(
+    location, widthDirection, heightDirection, timeFormatter,
+    foregroundMaterial, backgroundMaterial, fontType, fontSize
+) {
     override var isRunning: Boolean = false
 
     var time: LocalTime = LocalTime.MIN
@@ -147,11 +230,25 @@ class NonSyncedClock(
         }
         super.update(time)
     }
+
+    init {
+        super.update(time)  // to display zeros after being created
+    }
 }
 
 
 @JvmInline
-value class AxisDirection(private val direction: Pair<Char, Char>)
+value class AxisDirection(private val direction: Pair<Sign, Axis>) {
+    val sign: Sign
+        get() = direction.first
+
+    val axis: Axis
+        get() = direction.second
+}
+
+enum class Sign(val raw: Int) { PLUS(1), MINUS(-1) }
+
+enum class Axis { X, Y, Z }
 
 enum class ClockDirection { UP, DOWN }
 
