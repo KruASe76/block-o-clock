@@ -5,6 +5,7 @@ messages: # Can be used to add translation
         overworld: Overworld
         nether: Nether
         end: End
+        custom: Custom # for "custom" dimension (probably useless)
         clock-created: Created {clock}
         clock-deleted: Deleted {clock}
         clock-started: Started {clock}
@@ -19,4 +20,11 @@ messages: # Can be used to add translation
     help: # Not intended to be edited (unless adding translation)
         header: §7-------- §6[§aBlockOClock§6] §7--------------------------
         help: §a/boc §6help §a[command]§r - Show help for given command, for available commands otherwise
+        list: §a/boc §6list §a<nearest\|ordered> [page=1]
+        create: §a/boc §6create §a<*settings>
+        delete: §a/boc §6delete §a<id>
+        start: §a/boc §6start §a<id>
+        stop: §a/boc §6stop §a<id>
+        set-time: §a/boc §6set time §a<id> <hh:mm:ss.tt>
+        set-direction: §a/boc §6set direction §a<id> <up\|down>
         reload: §a/boc §6reload§r - Reload config

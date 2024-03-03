@@ -44,13 +44,13 @@ class BOCCommands : TabExecutor {
                     if (!sender.hasPluginPermission("reload")) throw UnsupportedOperationException()
                     userConfig = instance.getUserConfig()
                 }
-                else -> throw IllegalArgumentException()
+                else -> throw AssertionError()
             }
         } catch (e: UnsupportedOperationException) {
             sender.sendMessage(
                 "${ChatColor.RED}${userConfig.messages.error["no-permission"] ?: "Error: no-permission"}"
             )
-        } catch (e: IllegalArgumentException) {
+        } catch (e: AssertionError) {
             sender.sendMessage(
                 "${ChatColor.RED}${userConfig.messages.error["invalid-command"] ?: "Error: invalid-command"}"
             )

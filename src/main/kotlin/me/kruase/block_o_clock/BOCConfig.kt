@@ -10,6 +10,7 @@ val allPaths = listOf(
     "messages.info.overworld",
     "messages.info.nether",
     "messages.info.end",
+    "messages.info.custom",
     "messages.info.clock-created",
     "messages.info.clock-deleted",
     "messages.info.clock-started",

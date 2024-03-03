@@ -9,14 +9,14 @@ import org.bukkit.command.CommandSender
 fun delete(sender: CommandSender, args: List<String>) {
     if (!sender.hasPluginPermission("delete")) throw UnsupportedOperationException()
 
-    if (args.size < 1) throw IllegalArgumentException()
+    assert(args.size == 1)
 
     try {
         sender.sendMessage(
-            userConfig.messages.info["clock-created"]
+            userConfig.messages.info["clock-deleted"]
                 ?.replace("{clock}", BOCClockManager.delete(args[0].toInt()))
         )
-    } catch (e: IllegalArgumentException) {
+    } catch (e: IllegalStateException) {
         throw IllegalStateException(
             userConfig.messages.error["nonexistent-clock"] ?: "Error: nonexistent-clock"
         )

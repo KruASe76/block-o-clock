@@ -38,7 +38,7 @@ A Spigot (Bukkit) Minecraft plugin that allows to create clocks of blocks in the
 | `/boc help [command]`                   | Show help for given command, for available commands otherwise                                          |
 | `/boc list <nearest\|ordered> [page=1]` | List all clocks in the world (with IDs) with given sorting                                             |
 | `/boc create <*settings>`               | Create new clock in the world (and print its ID)                                                       |
-| `/boc delete <id>`                      | Delete the clock (and fills its blocks with air)                                                       |
+| `/boc delete <id>`                      | Delete the clock (and fill its blocks with air)                                                        |
 | `/boc start <id>`                       | Start stopped clock                                                                                    |
 | `/boc stop <id>`                        | Stop the clock (it won't update until `/boc start`)                                                    |
 | `/boc set time <id> <hh:mm:ss.tt>`      | Set given time on **non-synced** clock (if the time unit is not displayed its value can be just zeros) |

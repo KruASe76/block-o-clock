@@ -4,7 +4,7 @@ import me.kruase.block_o_clock.BlockOClock.Static.instance
 import me.kruase.block_o_clock.BlockOClock.Static.userConfig
 import org.bukkit.ChatColor
 import org.bukkit.Location
-import org.bukkit.World
+import org.bukkit.World.Environment
 import org.bukkit.command.CommandSender
 import java.time.LocalTime
 
@@ -52,15 +52,32 @@ fun CommandSender.hasPluginPermission(name: String): Boolean {
 }
 
 
+val Environment.normalName: String  // without NORMAL lol
+    get() = when (this) {
+        Environment.NORMAL -> "overworld"
+        Environment.NETHER -> "nether"
+        Environment.THE_END -> "end"
+        Environment.CUSTOM -> "custom"
+    }
+
+fun environmentByNormalName(normalName: String): Environment =
+    when (normalName) {
+        "overworld" -> Environment.NORMAL
+        "nether" -> Environment.NETHER
+        "end" -> Environment.THE_END
+        "custom" -> Environment.CUSTOM
+        else -> throw IllegalArgumentException()
+    }
+
 val Location.fancyString: String  // example: Nether, XYZ: 42 69 -777
     get() {
         when (world!!.environment) {
-            World.Environment.NORMAL -> ChatColor.GREEN
-            World.Environment.NETHER -> ChatColor.RED
-            World.Environment.THE_END -> ChatColor.LIGHT_PURPLE
-            World.Environment.CUSTOM -> ChatColor.YELLOW
+            Environment.NORMAL -> ChatColor.GREEN
+            Environment.NETHER -> ChatColor.RED
+            Environment.THE_END -> ChatColor.LIGHT_PURPLE
+            Environment.CUSTOM -> ChatColor.YELLOW
         }.let { dimensionColor ->
-            return "$dimensionColor${userConfig.messages.info[world!!.environment.name.lowercase()]}${ChatColor.GRAY}, " +
+            return "$dimensionColor${userConfig.messages.info[world!!.environment.normalName]}${ChatColor.GRAY}, " +
                     "${ChatColor.GOLD}X${ChatColor.AQUA}Y${ChatColor.YELLOW}Z${ChatColor.GRAY}: " +
                     "${ChatColor.GOLD}${x.toInt()} ${ChatColor.AQUA}${y.toInt()} ${ChatColor.YELLOW}${z.toInt()}" +
                     "${ChatColor.RESET}"

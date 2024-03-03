@@ -22,8 +22,8 @@ object BOCClockManager {
         heightDirection: AxisDirection,
         timeFormatter: DateTimeFormatter,
         timeZoneId: ZoneId?,
-        foregroundMaterial: Material,
-        backgroundMaterial: Material,
+        foregroundMaterial: Material?,
+        backgroundMaterial: Material?,
         fontType: FontType,
         fontSize: Int
     ): String {
@@ -47,7 +47,7 @@ object BOCClockManager {
     }
 
     fun delete(id: Int): String {
-        clocks[id]?.destroy() ?: throw IllegalArgumentException()
+        clocks[id]?.destroy() ?: throw IllegalStateException()
         clocks.remove(id).let { return it!!.fancyString(id) }
     }
 
@@ -62,7 +62,7 @@ object BOCClockManager {
     }
 
     fun start(id: Int): String {
-        if (id !in clocks) throw IllegalArgumentException()
+        if (id !in clocks) throw IllegalStateException()
 
         clocks[id]!!.let {
             it.isRunning = true
@@ -72,7 +72,7 @@ object BOCClockManager {
     }
 
     fun stop(id: Int): String {
-        if (id !in clocks) throw IllegalArgumentException()
+        if (id !in clocks) throw IllegalStateException()
 
         clocks[id]!!.let {
             it.isRunning = false
@@ -82,10 +82,10 @@ object BOCClockManager {
     }
 
     fun setTime(id: Int, time: LocalTime): String {
-        if (id !in clocks) throw IllegalArgumentException()
+        if (id !in clocks) throw IllegalStateException()
 
         clocks[id]!!.let {
-            if (it !is NonSyncedClock) throw IllegalArgumentException()
+            if (it !is NonSyncedClock) throw IllegalStateException()
 
             it.time = time
 
@@ -94,10 +94,10 @@ object BOCClockManager {
     }
 
     fun setDirection(id: Int, direction: ClockDirection): String {
-        if (id !in clocks) throw IllegalArgumentException()
+        if (id !in clocks) throw IllegalStateException()
 
         clocks[id]!!.let {
-            if (it !is NonSyncedClock) throw IllegalArgumentException()
+            if (it !is NonSyncedClock) throw IllegalStateException()
 
             it.direction = direction
 
@@ -112,8 +112,8 @@ abstract class BOCClock(
     widthDirection: AxisDirection,
     heightDirection: AxisDirection,
     private val timeFormatter: DateTimeFormatter,
-    private val foregroundMaterial: Material,
-    private val backgroundMaterial: Material,
+    private val foregroundMaterial: Material?,
+    private val backgroundMaterial: Material?,
     fontType: FontType,
     fontSize: Int
 ) {
@@ -179,7 +179,10 @@ abstract class BOCClock(
         blockLocations.forEachIndexed { width, locationList ->
             locationList.forEachIndexed { height, location ->
                 if (grid[width][height] != newGrid[width][height])  // update only necessary blocks for optimization
-                    location.block.type = if (newGrid[width][height]) foregroundMaterial else backgroundMaterial
+                    (if (newGrid[width][height]) foregroundMaterial else backgroundMaterial).let { material ->
+                        if (material != null)
+                            location.block.type = material
+                    }
             }
         }
 
@@ -198,8 +201,8 @@ class SyncedClock(
     widthDirection: AxisDirection,
     heightDirection: AxisDirection,
     timeFormatter: DateTimeFormatter,
-    foregroundMaterial: Material,
-    backgroundMaterial: Material,
+    foregroundMaterial: Material?,
+    backgroundMaterial: Material?,
     fontType: FontType,
     fontSize: Int,
 
@@ -224,8 +227,8 @@ class NonSyncedClock(
     widthDirection: AxisDirection,
     heightDirection: AxisDirection,
     timeFormatter: DateTimeFormatter,
-    foregroundMaterial: Material,
-    backgroundMaterial: Material,
+    foregroundMaterial: Material?,
+    backgroundMaterial: Material?,
     fontType: FontType,
     fontSize: Int,
 ) : BOCClock(
@@ -264,7 +267,19 @@ value class AxisDirection(private val direction: Pair<Sign, Axis>) {
         get() = direction.second
 }
 
-enum class Sign(val raw: Int) { PLUS(1), MINUS(-1) }
+enum class Sign(val raw: Int) {
+    PLUS(1), MINUS(-1);
+
+    companion object {
+        infix fun from(value: Char): Sign {
+            return when(value) {
+                '+' -> PLUS
+                '-' -> MINUS
+                else -> throw IllegalArgumentException()
+            }
+        }
+    }
+}
 
 enum class Axis { X, Y, Z }
 
