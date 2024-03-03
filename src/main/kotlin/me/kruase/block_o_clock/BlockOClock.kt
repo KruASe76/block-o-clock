@@ -4,7 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin
 
 
 class BlockOClock : JavaPlugin() {
-    companion object {
+    companion object Static {
         lateinit var instance: BlockOClock
         lateinit var userConfig: BOCConfig
     }

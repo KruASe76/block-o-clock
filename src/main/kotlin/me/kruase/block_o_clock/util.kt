@@ -1,16 +1,12 @@
 package me.kruase.block_o_clock
 
-import me.kruase.block_o_clock.BlockOClock.Companion.instance
+import me.kruase.block_o_clock.BlockOClock.Static.instance
+import me.kruase.block_o_clock.BlockOClock.Static.userConfig
 import org.bukkit.ChatColor
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.command.CommandSender
 import java.time.LocalTime
-
-
-fun String.fullTitlecase(): String {  // titlecase but all non-first letters are forced to lowercase
-    return lowercase().replaceFirstChar { it.titlecase() }
-}
 
 
 fun <T> List<List<T>>.transpose(): List<List<T>> {
@@ -64,7 +60,7 @@ val Location.fancyString: String  // example: Nether, XYZ: 42 69 -777
             World.Environment.THE_END -> ChatColor.LIGHT_PURPLE
             World.Environment.CUSTOM -> ChatColor.YELLOW
         }.let { dimensionColor ->
-            return "$dimensionColor${world!!.environment.name.fullTitlecase()}${ChatColor.GRAY}, " +
+            return "$dimensionColor${userConfig.messages.info[world!!.environment.name.lowercase()]}${ChatColor.GRAY}, " +
                     "${ChatColor.GOLD}X${ChatColor.AQUA}Y${ChatColor.YELLOW}Z${ChatColor.GRAY}: " +
                     "${ChatColor.GOLD}${x.toInt()} ${ChatColor.AQUA}${y.toInt()} ${ChatColor.YELLOW}${z.toInt()}" +
                     "${ChatColor.RESET}"

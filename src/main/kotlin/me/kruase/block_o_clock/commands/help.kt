@@ -1,11 +1,11 @@
 package me.kruase.block_o_clock.commands
 
-import me.kruase.block_o_clock.BlockOClock.Companion.userConfig
+import me.kruase.block_o_clock.BlockOClock.Static.userConfig
 import me.kruase.block_o_clock.hasPluginPermission
 import org.bukkit.command.CommandSender
 
 
-fun help(sender: CommandSender, args: Array<out String>) {
+fun help(sender: CommandSender, args: List<String>) {
     if (!sender.hasPluginPermission("help")) throw UnsupportedOperationException()
 
     if (args.size > 1) throw IllegalArgumentException()

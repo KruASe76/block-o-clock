@@ -12,21 +12,56 @@ commands:
         permission: blockoclock.help
         usage: |-
             §7Run §6/help <command> [n] §7to get page n of help
-            §a/<command> §6help §a[command] §r- Show help for given command, for available commands otherwise
-            §a/<command> §6reload §r- Reload config
+            §a/<command> §6help §a[command]§r - Show help for given command, for available commands otherwise
+            §a/<command> §6reload§r - Reload config
             §cWARNING: §eCommands listed here might be unavailable for you, to get help for available commands run §a/<command> help
         aliases:
             - boc
 
 permissions:
     blockoclock.help:
-        description: Allows to use §a/boc §6help §r(lists only available commands)
+        description: Allows to use §a/boc §6help§r (lists only available commands)
         default: true
+    blockoclock.list:
+        description: Allows to use §a/boc §6list
+        default: op
+    blockoclock.create:
+        description: Allows to use §a/boc §6create
+        default: op
+    blockoclock.delete:
+        description: Allows to use §a/boc §6delete
+        default: op
+    blockoclock.start:
+        description: Allows to use §a/boc §6start
+        default: op
+    blockoclock.stop:
+        description: Allows to use §a/boc §6stop
+        default: op
+    blockoclock.set:
+        description: Allows to use §a/boc §6set
+        default: op
     blockoclock.reload:
         description: Allows to use §a/boc §6reload
         default: op
+    blockoclock.use:
+        description:
+            Refers to §2blockoclock.list§r, §2blockoclock.start§r, §2blockoclock.stop§r and §2blockoclock.set§r by default
+        default: op
+        children:
+            blockoclock.list: true
+            blockoclock.start: true
+            blockoclock.stop: true
+            blockoclock.set: true
+    blockoclock.manage:
+        description: Refers to §2blockoclock.create§r, §2blockoclock.delete§r and §2blockoclock.use§r by default
+        default: op
+        children:
+            blockoclock.create: true
+            blockoclock.delete: true
+            blockoclock.use: true
     blockoclock.admin:
-        description: Refers to §blockoclock.reload §rby default
+        description: Refers to §2blockoclock.reload§r and §2blockoclock.manage§r by default
         default: op
         children:
             blockoclock.reload: true
+            blockoclock.manage: true

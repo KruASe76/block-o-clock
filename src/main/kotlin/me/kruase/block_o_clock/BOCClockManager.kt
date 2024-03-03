@@ -1,5 +1,6 @@
 package me.kruase.block_o_clock
 
+import me.kruase.block_o_clock.BlockOClock.Static.userConfig
 import org.bukkit.ChatColor
 import org.bukkit.Location
 import org.bukkit.Material
@@ -9,7 +10,11 @@ import java.time.format.DateTimeFormatter
 
 
 object BOCClockManager {
-    private val clocks = mutableListOf<BOCClock>()
+    private val clocks = mutableMapOf<Int, BOCClock>()
+
+    fun update() {
+        clocks.values.forEach(BOCClock::update)
+    }
 
     fun create(
         location: Location,
@@ -20,9 +25,9 @@ object BOCClockManager {
         foregroundMaterial: Material,
         backgroundMaterial: Material,
         fontType: FontType,
-        fontSize: Int,
-    ): Int {
-        clocks.add(
+        fontSize: Int
+    ): String {
+        ((clocks.keys.maxOrNull() ?: -1) + 1).let { newId ->
             when (timeZoneId) {
                 null -> NonSyncedClock(
                     location, widthDirection, heightDirection, timeFormatter,
@@ -34,60 +39,69 @@ object BOCClockManager {
                     timeZoneId
                 )
             }
-        )
-        return clocks.size - 1
-    }
-
-    fun delete(id: Int) {
-        clocks[id].destroy()
-        clocks.removeAt(id)
-    }
-
-    fun update() {
-        clocks.forEach(BOCClock::update)
-    }
-
-    fun list(
-        sorting: ListSorting,
-        page: Int,
-        baseLocation: Location = BlockOClock.instance.server.worlds[0].spawnLocation
-    ): List<String> {
-        return when(sorting) {
-            ListSorting.ORDERED -> clocks
-            ListSorting.NEAREST -> clocks.sortedBy { clock -> baseLocation.distanceSquared(clock.location) }
+                .let { newClock ->
+                    clocks[newId] = newClock
+                    return newClock.fancyString(newId)
+                }
         }
-            .slice(BlockOClock.userConfig.listPageSize * (page - 1) until BlockOClock.userConfig.listPageSize * page)
-            .mapIndexed { index, clock ->
-                "${ChatColor.GRAY}ID ${ChatColor.WHITE}$index${ChatColor.GRAY}: " +
-                        "${ChatColor.RESET}${clock.location.fancyString}"
-            }
     }
 
-    fun start(id: Int) {
-        clocks[id].isRunning = true
+    fun delete(id: Int): String {
+        clocks[id]?.destroy() ?: throw IllegalArgumentException()
+        clocks.remove(id).let { return it!!.fancyString(id) }
     }
 
-    fun stop(id: Int) {
-        clocks[id].isRunning = false
+    fun list(sorting: ListSorting, page: Int, baseLocation: Location): List<String> {
+        return when(sorting) {
+            ListSorting.ORDERED -> clocks.toList()
+            ListSorting.NEAREST ->
+                clocks.toList().sortedBy { (_, clock) -> baseLocation.distanceSquared(clock.location) }
+        }
+            .slice(userConfig.listPageSize * (page - 1) until userConfig.listPageSize * page)
+            .map { (id, clock) -> clock.fancyString(id) }
     }
 
-    fun setTime(id: Int, time: LocalTime) {
-        clocks[id].let {
-            if (it !is NonSyncedClock) throw IllegalStateException(
-                BlockOClock.userConfig.messages.error["synced-clock-set"] ?: "Error: synced-clock-set"
-            )
+    fun start(id: Int): String {
+        if (id !in clocks) throw IllegalArgumentException()
+
+        clocks[id]!!.let {
+            it.isRunning = true
+
+            return it.fancyString(id)
+        }
+    }
+
+    fun stop(id: Int): String {
+        if (id !in clocks) throw IllegalArgumentException()
+
+        clocks[id]!!.let {
+            it.isRunning = false
+
+            return it.fancyString(id)
+        }
+    }
+
+    fun setTime(id: Int, time: LocalTime): String {
+        if (id !in clocks) throw IllegalArgumentException()
+
+        clocks[id]!!.let {
+            if (it !is NonSyncedClock) throw IllegalArgumentException()
 
             it.time = time
+
+            return it.fancyString(id)
         }
     }
 
-    fun setDirection(id: Int, direction: ClockDirection) {
-        clocks[id].let {
-            if (it !is NonSyncedClock) throw IllegalStateException(
-                BlockOClock.userConfig.messages.error["synced-clock-set"] ?: "Error: synced-clock-set"
-            )
+    fun setDirection(id: Int, direction: ClockDirection): String {
+        if (id !in clocks) throw IllegalArgumentException()
+
+        clocks[id]!!.let {
+            if (it !is NonSyncedClock) throw IllegalArgumentException()
 
             it.direction = direction
+
+            return it.fancyString(id)
         }
     }
 }
@@ -235,6 +249,10 @@ class NonSyncedClock(
         super.update(time)  // to display zeros after being created
     }
 }
+
+
+fun BOCClock.fancyString(id: Int) =
+    "${ChatColor.GRAY}ID ${ChatColor.WHITE}$id${ChatColor.GRAY}: ${ChatColor.RESET}${location.fancyString}"
 
 
 @JvmInline

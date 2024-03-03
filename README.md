@@ -36,14 +36,14 @@ A Spigot (Bukkit) Minecraft plugin that allows to create clocks of blocks in the
 | Command                                 | Description                                                                                            |
 |-----------------------------------------|--------------------------------------------------------------------------------------------------------|
 | `/boc help [command]`                   | Show help for given command, for available commands otherwise                                          |
-| `/boc reload`                           | Reload config                                                                                          |
-| `/boc create <*settings>`               | Create new clock in the world (and print its ID)                                                       |
 | `/boc list <nearest\|ordered> [page=1]` | List all clocks in the world (with IDs) with given sorting                                             |
+| `/boc create <*settings>`               | Create new clock in the world (and print its ID)                                                       |
 | `/boc delete <id>`                      | Delete the clock (and fills its blocks with air)                                                       |
 | `/boc start <id>`                       | Start stopped clock                                                                                    |
 | `/boc stop <id>`                        | Stop the clock (it won't update until `/boc start`)                                                    |
 | `/boc set time <id> <hh:mm:ss.tt>`      | Set given time on **non-synced** clock (if the time unit is not displayed its value can be just zeros) |
 | `/boc set direction <id> <up\|down>`    | Set given direction on **non-synced** clock                                                            |
+| `/boc reload`                           | Reload config                                                                                          |
 
 ### `/boc create` syntax
 
@@ -71,11 +71,19 @@ A Spigot (Bukkit) Minecraft plugin that allows to create clocks of blocks in the
 
 ## Permissions
 
-| Permission node      | Default | Description                                               |
-|----------------------|---------|-----------------------------------------------------------|
-| `blockoclock.help`   | true    | Allows to use `/boc help` (lists only available commands) |
-| `blockoclock.reload` | op      | Allows to use `/boc reload`                               |
-| `blockoclock.admin`  | op      | Refers to `blockoclock.reload` by default                 |
+| Permission node      | Default | Description                                                                                            |
+|----------------------|---------|--------------------------------------------------------------------------------------------------------|
+| `blockoclock.help`   | true    | Allows to use `/boc help` (lists only available commands)                                              |
+| `blockoclock.list`   | op      | Allows to use `/boc list`                                                                              |
+| `blockoclock.create` | op      | Allows to use `/boc create`                                                                            |
+| `blockoclock.delete` | op      | Allows to use `/boc delete`                                                                            |
+| `blockoclock.start`  | op      | Allows to use `/boc start`                                                                             |
+| `blockoclock.stop`   | op      | Allows to use `/boc stop`                                                                              |
+| `blockoclock.set`    | op      | Allows to use `/boc set`                                                                               |
+| `blockoclock.reload` | op      | Allows to use `/boc reload`                                                                            |
+| `blockoclock.use`    | op      | Refers to `blockoclock.list`, `blockoclock.start`, `blockoclock.stop` and `blockoclock.set` by default |
+| `blockoclock.manage` | op      | Refers to `blockoclock.create`, `blockoclock.delete` and `blockoclock.use` by default                  |
+| `blockoclock.admin`  | op      | Refers to `blockoclock.reload` and `blockoclock.manage` by default                                     |
 
 
 ## Special thanks to:
