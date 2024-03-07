@@ -1,11 +1,13 @@
 default-font-size: 3
 list-page-size: 5
 messages: # Can be used to add translation
-    info: # To turn off certain messages leave the field empty (not empty quotes!)
+    dimension:
         overworld: Overworld
         nether: Nether
         end: End
         custom: Custom # for "custom" dimension (probably useless)
+    info: # To turn off certain messages leave the field empty (not empty quotes!)
+        clock-list-header: §7-------- §6[§aBlockOClock§6] §7--------------------------
         clock-created: Created {clock}
         clock-deleted: Deleted {clock}
         clock-started: Started {clock}
@@ -17,14 +19,15 @@ messages: # Can be used to add translation
         invalid-command: Invalid command!
         nonexistent-clock: Clock with this ID does not exist!
         synced-clock-set: Unable to change synced clock settings!
+        another-clock-at-location: Clock ID {id} already exists at this location!
     help: # Not intended to be edited (unless adding translation)
         header: §7-------- §6[§aBlockOClock§6] §7--------------------------
         help: §a/boc §6help §a[command]§r - Show help for given command, for available commands otherwise
-        list: §a/boc §6list §a<nearest\|ordered> [page=1]
-        create: §a/boc §6create §a<*settings>
-        delete: §a/boc §6delete §a<id>
-        start: §a/boc §6start §a<id>
-        stop: §a/boc §6stop §a<id>
-        set-time: §a/boc §6set time §a<id> <hh:mm:ss.tt>
-        set-direction: §a/boc §6set direction §a<id> <up\|down>
+        list: §a/boc §6list §a<nearest|ordered> [page=1]§r - List all clocks in the world (with IDs) with given sorting
+        create: §a/boc §6create §a<*settings>§r - Create new clock in the world (and print its ID)
+        delete: §a/boc §6delete §a<id>§r - Delete the clock (and fill it with air)
+        start: §a/boc §6start §a<id>§r - Start stopped clock
+        stop: §a/boc §6stop §a<id>§r - Stop the clock (won't update until calling §a/boc §6start§r on it)
+        set-time: §a/boc §6set time §a<id> <HH:mm:ss.tt>§r - Set given time on §enon-synced§r clock (if the time unit is not displayed its value can be just zeros)
+        set-direction: §a/boc §6set direction §a<id> <up|down>§r - Set given direction on §enon-synced§r clock
         reload: §a/boc §6reload§r - Reload config

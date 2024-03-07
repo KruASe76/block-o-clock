@@ -15,16 +15,22 @@ class BOCCommands : TabExecutor {
     ): List<String> {
         val fullArgs = args.dropLast(1)
         return when (fullArgs.getOrNull(0)) {
-            null -> userConfig.messages.help.keys
-                .filter { sender.hasPluginPermission(it.replace("-", ".")) } - "header"
-            "help" -> when {
-                sender.hasPluginPermission("help") -> when (fullArgs.getOrNull(1)) {
-                    null -> userConfig.messages.help.keys
-                        .filter { sender.hasPluginPermission(it.replace("-", ".")) } - "header"
+            null ->
+                userConfig.messages.help.keys
+                    .filter { sender.hasPluginPermission(it.replace("-", ".")) } - "header"
+            "help" ->
+                when {
+                    sender.hasPluginPermission("help") ->
+                        when (fullArgs.getOrNull(1)) {
+                            null ->
+                                userConfig.messages.help.keys
+                                    .filter {
+                                        sender.hasPluginPermission(it.replace("-", "."))
+                                    } - "header"
+                            else -> emptyList()
+                        }
                     else -> emptyList()
                 }
-                else -> emptyList()
-            }
             else -> emptyList()
         }
     }
@@ -42,6 +48,7 @@ class BOCCommands : TabExecutor {
                 "set" -> set(sender, args.drop(1))
                 "reload" -> {
                     if (!sender.hasPluginPermission("reload")) throw UnsupportedOperationException()
+
                     userConfig = instance.getUserConfig()
                 }
                 else -> throw AssertionError()

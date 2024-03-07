@@ -1,5 +1,6 @@
 package me.kruase.block_o_clock
 
+import me.kruase.block_o_clock.BlockOClock.Static.instance
 import me.kruase.block_o_clock.BlockOClock.Static.userConfig
 import org.bukkit.ChatColor
 import org.bukkit.Location
@@ -7,12 +8,21 @@ import org.bukkit.Material
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.math.ceil
 
 
 object BOCClockManager {
     private val clocks = mutableMapOf<Int, BOCClock>()
 
-    fun update() {
+    fun run() {
+        instance.server.scheduler.scheduleSyncRepeatingTask(
+            instance,
+            Runnable(::update),
+            0L, 1L
+        )
+    }
+
+    private fun update() {
         clocks.values.forEach(BOCClock::update)
     }
 
@@ -27,87 +37,122 @@ object BOCClockManager {
         fontType: FontType,
         fontSize: Int
     ): String {
-        ((clocks.keys.maxOrNull() ?: -1) + 1).let { newId ->
-            when (timeZoneId) {
-                null -> NonSyncedClock(
-                    location, widthDirection, heightDirection, timeFormatter,
-                    foregroundMaterial, backgroundMaterial, fontType, fontSize
-                )
-                else -> SyncedClock(
-                    location, widthDirection, heightDirection, timeFormatter,
-                    foregroundMaterial, backgroundMaterial, fontType, fontSize,
-                    timeZoneId
+        clocks.values.firstOrNull { it.location == location }
+            ?.let {
+                throw IllegalStateException(
+                    (
+                        userConfig.messages.error["another-clock-at-location"]
+                            ?: "Error: another-clock-at-location: ID {id}"
+                    )
+                        .replace("{id}", it.id.toString())
                 )
             }
-                .let { newClock ->
-                    clocks[newId] = newClock
-                    return newClock.fancyString(newId)
+
+        ((clocks.keys.maxOrNull() ?: -1) + 1)
+            .let { newId ->
+                when (timeZoneId) {
+                    null ->
+                        NonSyncedClock(
+                            newId,
+                            location, widthDirection, heightDirection, timeFormatter,
+                            foregroundMaterial, backgroundMaterial, fontType, fontSize
+                        )
+                    else ->
+                        SyncedClock(
+                            newId,
+                            location, widthDirection, heightDirection, timeFormatter,
+                            foregroundMaterial, backgroundMaterial, fontType, fontSize,
+                            timeZoneId
+                        )
                 }
-        }
+                    .let { newClock ->
+                        clocks[newId] = newClock
+                        return newClock.fancyString
+                    }
+            }
     }
 
     fun delete(id: Int): String {
-        clocks[id]?.destroy() ?: throw IllegalStateException()
-        clocks.remove(id).let { return it!!.fancyString(id) }
+        assertIdExists(id)
+
+        clocks[id]!!.destroy()
+        clocks.remove(id).let { return it!!.fancyString }
     }
 
-    fun list(sorting: ListSorting, page: Int, baseLocation: Location): List<String> {
-        return when(sorting) {
-            ListSorting.ORDERED -> clocks.toList()
-            ListSorting.NEAREST ->
-                clocks.toList().sortedBy { (_, clock) -> baseLocation.distanceSquared(clock.location) }
-        }
-            .slice(userConfig.listPageSize * (page - 1) until userConfig.listPageSize * page)
-            .map { (id, clock) -> clock.fancyString(id) }
+    fun list(sorting: ListSorting, page: Int, baseLocation: Location): Pair<List<String>, Int> {
+        return Pair(
+            when(sorting) {
+                ListSorting.ORDERED -> clocks.values.toList()
+                ListSorting.NEAREST ->
+                    clocks.values.sortedBy { clock -> baseLocation.distanceSquared(clock.location) }
+            }
+                .slice(userConfig.listPageSize * (page - 1) until userConfig.listPageSize * page)
+                .map(BOCClock::fancyString),
+            ceil(clocks.size / userConfig.listPageSize.toDouble()).toInt()  // total pages
+        )
     }
 
     fun start(id: Int): String {
-        if (id !in clocks) throw IllegalStateException()
+        assertIdExists(id)
 
         clocks[id]!!.let {
             it.isRunning = true
 
-            return it.fancyString(id)
+            return it.fancyString
         }
     }
 
     fun stop(id: Int): String {
-        if (id !in clocks) throw IllegalStateException()
+        assertIdExists(id)
 
         clocks[id]!!.let {
             it.isRunning = false
 
-            return it.fancyString(id)
+            return it.fancyString
         }
     }
 
     fun setTime(id: Int, time: LocalTime): String {
-        if (id !in clocks) throw IllegalStateException()
+        assertIdExists(id)
 
         clocks[id]!!.let {
-            if (it !is NonSyncedClock) throw IllegalStateException()
+            if (it !is NonSyncedClock)
+                throw IllegalStateException(
+                    userConfig.messages.error["synced-clock-set"] ?: "Error: synced-clock-set"
+                )
 
             it.time = time
 
-            return it.fancyString(id)
+            return it.fancyString
         }
     }
 
     fun setDirection(id: Int, direction: ClockDirection): String {
-        if (id !in clocks) throw IllegalStateException()
+        assertIdExists(id)
 
         clocks[id]!!.let {
-            if (it !is NonSyncedClock) throw IllegalStateException()
+            if (it !is NonSyncedClock)
+                throw IllegalStateException(
+                    userConfig.messages.error["synced-clock-set"] ?: "Error: synced-clock-set"
+                )
 
             it.direction = direction
 
-            return it.fancyString(id)
+            return it.fancyString
         }
+    }
+
+    private fun assertIdExists(id: Int) {
+        if (id !in clocks)
+            throw IllegalStateException(
+                userConfig.messages.error["nonexistent-clock"] ?: "Error: nonexistent-clock"
+            )
     }
 }
 
 
 abstract class BOCClock(
+    val id: Int,
     val location: Location,
     widthDirection: AxisDirection,
     heightDirection: AxisDirection,
@@ -120,18 +165,22 @@ abstract class BOCClock(
     abstract var isRunning: Boolean
 
     private var display: String = LocalTime.MIN.format(timeFormatter)
-    private var grid: List<List<Boolean>> =
-        display.count { it.isDigit() }.let { digitCount ->
-            when(fontType) {
-                // display width: digits + delimiters (1 pixel each) + spaces between characters
-                FontType.DIGITAL -> List(
-                    digitCount * fontSize + (display.length - digitCount) + (display.length - 1)
-                ) { List(fontSize * 2 - 1) { false } }
-                FontType.MINECRAFT -> List(
-                    digitCount * BOCRender.MINECRAFT_FONT_WIDTH + (display.length - digitCount) + (display.length - 1)
-                ) { List(BOCRender.MINECRAFT_FONT_HEIGHT) { false } }
+    private var grid: List<List<Boolean?>> =
+        display.count { it.isDigit() }
+            .let { digitCount ->
+                when(fontType) {
+                    // display width: digits + delimiters (1 pixel each) + spaces between characters
+                    FontType.DIGITAL ->
+                        List(
+                            digitCount * fontSize + (display.length - digitCount) + (display.length - 1)
+                        ) { List(fontSize * 2 - 1) { null } }
+                    FontType.MINECRAFT ->
+                        List(
+                            digitCount * BOCRender.MINECRAFT_FONT_WIDTH + (display.length - digitCount) +
+                                    (display.length - 1)
+                        ) { List(BOCRender.MINECRAFT_FONT_HEIGHT) { null } }
+                }
             }
-        }
 
     private val blockLocations: List<List<Location>> = run {
         val widthOffsetLocation = Location(
@@ -149,10 +198,20 @@ abstract class BOCClock(
 
         List(grid.size) { widthOffset ->
             List(grid[0].size) { heightOffset ->
-                location  // TODO: test if works as intended
+                location
                     .clone()
-                    .add(widthOffsetLocation.multiply(widthOffset.toDouble()))
-                    .add(heightOffsetLocation.multiply(heightOffset.toDouble()))
+                    .apply {
+                        add(
+                            widthOffsetLocation
+                                .clone()
+                                .apply { multiply(widthOffset.toDouble()) }
+                        )
+                        add(
+                            heightOffsetLocation
+                                .clone()
+                                .apply { multiply(heightOffset.toDouble()) }
+                        )
+                    }
             }
         }
     }
@@ -165,24 +224,27 @@ abstract class BOCClock(
 
     abstract fun update()
 
-    protected fun update(time: LocalTime) {
-        if (!isRunning) return
+    protected fun update(time: LocalTime, isInitial: Boolean) {
+        if (!isRunning && !isInitial) return
 
         val newDisplay = time.format(timeFormatter)
 
-        if (display == newDisplay) return
+        if (display == newDisplay && !isInitial) return
 
-        val newGrid = display
-            .map { char -> font[char]!! }
-            .fold(emptyList<List<Boolean>>()) { list1, list2 -> list1 + listOf(List(grid[0].size) { false }) + list2 }
+        val newGrid =
+            newDisplay
+                .map { char -> font[char]!! }
+                .reduce { list1, list2 -> list1 + listOf(List(grid[0].size) { false }) + list2 }
+                // listOf(...) is the space between characters
 
         blockLocations.forEachIndexed { width, locationList ->
             locationList.forEachIndexed { height, location ->
                 if (grid[width][height] != newGrid[width][height])  // update only necessary blocks for optimization
-                    (if (newGrid[width][height]) foregroundMaterial else backgroundMaterial).let { material ->
-                        if (material != null)
-                            location.block.type = material
-                    }
+                    (if (newGrid[width][height]) foregroundMaterial else backgroundMaterial)
+                        .let { material ->
+                            if (material != null)
+                                location.block.type = material
+                        }
             }
         }
 
@@ -197,6 +259,7 @@ abstract class BOCClock(
 
 
 class SyncedClock(
+    id: Int,
     location: Location,
     widthDirection: AxisDirection,
     heightDirection: AxisDirection,
@@ -208,21 +271,23 @@ class SyncedClock(
 
     private val timeZoneId: ZoneId
 ) : BOCClock(
+    id,
     location, widthDirection, heightDirection, timeFormatter,
     foregroundMaterial, backgroundMaterial, fontType, fontSize
 ) {
     override var isRunning: Boolean = true
 
     override fun update() {
-        super.update(LocalTime.now(timeZoneId))
+        super.update(time = LocalTime.now(timeZoneId).ticks, isInitial = false)
     }
 
     init {
-        update()
+        super.update(time = LocalTime.now(timeZoneId).ticks, isInitial = true)
     }
 }
 
 class NonSyncedClock(
+    id: Int,
     location: Location,
     widthDirection: AxisDirection,
     heightDirection: AxisDirection,
@@ -232,6 +297,7 @@ class NonSyncedClock(
     fontType: FontType,
     fontSize: Int,
 ) : BOCClock(
+    id,
     location, widthDirection, heightDirection, timeFormatter,
     foregroundMaterial, backgroundMaterial, fontType, fontSize
 ) {
@@ -245,17 +311,17 @@ class NonSyncedClock(
             ClockDirection.UP -> time.plusTicks(1L)
             ClockDirection.DOWN -> time.minusTicks(1L)
         }
-        super.update(time)
+        super.update(time = time, isInitial = false)
     }
 
     init {
-        super.update(time)  // to display zeros after being created
+        super.update(time = time, isInitial = true)  // to display zeros after being created
     }
 }
 
 
-fun BOCClock.fancyString(id: Int) =
-    "${ChatColor.GRAY}ID ${ChatColor.WHITE}$id${ChatColor.GRAY}: ${ChatColor.RESET}${location.fancyString}"
+val BOCClock.fancyString
+    get() = "${ChatColor.GRAY}ID ${ChatColor.WHITE}$id${ChatColor.GRAY}: ${ChatColor.RESET}${location.fancyString}"
 
 
 @JvmInline

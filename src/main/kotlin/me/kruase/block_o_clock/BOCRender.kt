@@ -159,11 +159,14 @@ object BOCRender {
         """
     )
         .mapValues { (char, string) ->
-            string.trimIndent().split("\n").map { line ->
-                line
-                    .padEnd(if (char.isDigit()) MINECRAFT_FONT_WIDTH else 1)
-                    .map { it == '█' }
-            }.transpose()  // needed char access: list[x][y]
+            string
+                .trimIndent()
+                .split("\n")
+                .map { line ->
+                    line
+                        .padEnd(if (char.isDigit()) MINECRAFT_FONT_WIDTH else 1)
+                        .map { it == '█' }
+                }.transpose()  // needed char access: list[x][y]
         }
 }
 
@@ -184,18 +187,22 @@ value class SevenSegmentDisplay(val grid: List<List<Boolean>>) {
                 Segment.TOP -> newGrid.map { column -> column[0] = true }
                 Segment.MIDDLE -> newGrid.map { column -> column[height / 2] = true }
                 Segment.BOTTOM -> newGrid.map { column -> column[height - 1] = true }
-                Segment.LEFT_TOP -> newGrid[0] = (
-                        List(height / 2 + 1) { true } + newGrid[0].slice(height / 2 + 1 until height)
-                ).toMutableList()
-                Segment.LEFT_BOTTOM -> newGrid[0] = (
-                        newGrid[0].slice(0 until height / 2) + List(height / 2 + 1) { true }
-                ).toMutableList()
-                Segment.RIGHT_TOP -> newGrid[newGrid.size - 1] = (
-                        List(height / 2 + 1) { true } + newGrid[width - 1].slice(height / 2 + 1 until height)
-                ).toMutableList()
-                Segment.RIGHT_BOTTOM -> newGrid[newGrid.size - 1] = (
-                        newGrid[width - 1].slice(0 until height / 2) + List(height / 2 + 1) { true }
-                ).toMutableList()
+                Segment.LEFT_TOP ->
+                    newGrid[0] =
+                        (List(height / 2 + 1) { true } + newGrid[0].slice(height / 2 + 1 until height))
+                            .toMutableList()
+                Segment.LEFT_BOTTOM ->
+                    newGrid[0] =
+                        (newGrid[0].slice(0 until height / 2) + List(height / 2 + 1) { true })
+                            .toMutableList()
+                Segment.RIGHT_TOP ->
+                    newGrid[newGrid.size - 1] =
+                        (List(height / 2 + 1) { true } + newGrid[width - 1].slice(height / 2 + 1 until height))
+                            .toMutableList()
+                Segment.RIGHT_BOTTOM ->
+                    newGrid[newGrid.size - 1] =
+                        (newGrid[width - 1].slice(0 until height / 2) + List(height / 2 + 1) { true })
+                            .toMutableList()
             }
         }
 

@@ -17,6 +17,7 @@ val clockSectionNames = listOf("hour", "min", "sec", "tick")
 
 
 // boc create <dim> <xyz> ±<x|y|z> ±<x|y|z> <hour|min|sec|tick> <hour|min|sec|tick> <±hh[:mm]|none> <block|none> <block|none> <font> [size=3]
+// /boc create overworld ~ ~ ~ +x -y hour tick +03 diamond_block netherite_block minecraft  TODO: remove
 fun create(sender: CommandSender, args: List<String>) {
     if (!sender.hasPluginPermission("create")) throw UnsupportedOperationException()
 
@@ -40,10 +41,9 @@ fun create(sender: CommandSender, args: List<String>) {
             }
 
         val location = Location(
-            instance.server.worlds.first { it.environment == environmentByNormalName(args[0].uppercase()) },
+            instance.server.worlds.first { it.environment == environmentByNormalName(args[0]) },
             coords[0], coords[1], coords[2]
         )
-        assert(location.world!!.worldBorder.isInside(location))
 
         val widthDirection = AxisDirection(Pair(Sign from args[4][0], Axis.valueOf(args[4][1].uppercase())))
         val heightDirection = AxisDirection(Pair(Sign from args[5][0], Axis.valueOf(args[5][1].uppercase())))
@@ -57,12 +57,12 @@ fun create(sender: CommandSender, args: List<String>) {
                 .replace(":SS", ".SS")
         )
 
-        val timeZoneId = if (args[8] == "null") null else ZoneId.of(args[8])
+        val timeZoneId = if (args[8] == "none") null else ZoneId.of(args[8])
 
         val foregroundMaterial =
-            if (args[9] == "null") null else Material.matchMaterial(args[9]) ?: throw AssertionError()
+            if (args[9] == "none") null else Material.matchMaterial(args[9]) ?: throw AssertionError()
         val backgroundMaterial =
-            if (args[10] == "null") null else Material.matchMaterial(args[10]) ?: throw AssertionError()
+            if (args[10] == "none") null else Material.matchMaterial(args[10]) ?: throw AssertionError()
 
         val fontType = FontType.valueOf(args[11].uppercase())
         val fontSize = args.getOrNull(12)?.toInt() ?: userConfig.defaultFontSize
@@ -80,9 +80,9 @@ fun create(sender: CommandSender, args: List<String>) {
     } catch (e: Exception) {
         when (e) {
             is NumberFormatException, is NoSuchElementException, is DateTimeException,
-            is IllegalArgumentException, is IllegalStateException, is NullPointerException -> throw AssertionError()
+            is IllegalArgumentException, is NullPointerException -> throw AssertionError()
             // theoretically NullPointerException should never occur
-            else -> throw e  // including AssertionError
+            else -> throw e  // here go IllegalStateException and AssertionError
         }
     }
 }

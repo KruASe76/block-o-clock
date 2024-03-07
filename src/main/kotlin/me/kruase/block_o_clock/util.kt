@@ -14,7 +14,8 @@ fun <T> List<List<T>>.transpose(): List<List<T>> {
 }
 
 
-const val NANOS_PER_TICK = 10000000
+const val NANO_TICK_SCALE = 10000000
+const val NANOS_PER_TICK = 50000000
 const val TICKS_PER_SECOND = 20
 const val SECONDS_PER_MINUTE = 60
 const val MINUTES_PER_HOUR = 60
@@ -38,13 +39,16 @@ fun LocalTime.plusTicks(ticksToAdd: Long): LocalTime {
         newTicks / TICKS_PER_HOUR,
         (newTicks / TICKS_PER_MINUTE) % MINUTES_PER_HOUR,
         (newTicks / TICKS_PER_SECOND) % SECONDS_PER_MINUTE,
-        (newTicks % TICKS_PER_SECOND) * NANOS_PER_TICK
+        (newTicks % TICKS_PER_SECOND) * NANO_TICK_SCALE
     )
 }
 
 fun LocalTime.minusTicks(ticksToSubtract: Long): LocalTime {
     return plusTicks(-ticksToSubtract)
 }
+
+val LocalTime.ticks
+    get() = withNano(nano / NANOS_PER_TICK * NANO_TICK_SCALE)
 
 
 fun CommandSender.hasPluginPermission(name: String): Boolean {
@@ -61,7 +65,7 @@ val Environment.normalName: String  // without NORMAL lol
     }
 
 fun environmentByNormalName(normalName: String): Environment =
-    when (normalName) {
+    when (normalName.lowercase()) {
         "overworld" -> Environment.NORMAL
         "nether" -> Environment.NETHER
         "end" -> Environment.THE_END
@@ -70,16 +74,16 @@ fun environmentByNormalName(normalName: String): Environment =
     }
 
 val Location.fancyString: String  // example: Nether, XYZ: 42 69 -777
-    get() {
+    get() =
         when (world!!.environment) {
             Environment.NORMAL -> ChatColor.GREEN
             Environment.NETHER -> ChatColor.RED
             Environment.THE_END -> ChatColor.LIGHT_PURPLE
             Environment.CUSTOM -> ChatColor.YELLOW
-        }.let { dimensionColor ->
-            return "$dimensionColor${userConfig.messages.info[world!!.environment.normalName]}${ChatColor.GRAY}, " +
-                    "${ChatColor.GOLD}X${ChatColor.AQUA}Y${ChatColor.YELLOW}Z${ChatColor.GRAY}: " +
-                    "${ChatColor.GOLD}${x.toInt()} ${ChatColor.AQUA}${y.toInt()} ${ChatColor.YELLOW}${z.toInt()}" +
-                    "${ChatColor.RESET}"
         }
-    }
+            .let { dimensionColor ->
+                "$dimensionColor${userConfig.messages.dimension[world!!.environment.normalName]}${ChatColor.GRAY}, " +
+                        "${ChatColor.GOLD}X${ChatColor.AQUA}Y${ChatColor.YELLOW}Z${ChatColor.GRAY}: " +
+                        "${ChatColor.GOLD}${x.toInt()} ${ChatColor.AQUA}${y.toInt()} ${ChatColor.YELLOW}${z.toInt()}" +
+                        "${ChatColor.RESET}"
+            }

@@ -11,9 +11,10 @@ fun help(sender: CommandSender, args: List<String>) {
     assert(args.size <= 1)
 
     when (args.getOrNull(0)) {
-        null -> userConfig.messages.help.keys
-            .filter { sender.hasPluginPermission(it.replace("-", ".")) || it == "header"}
-            .forEach { sender.sendMessage(userConfig.messages.help[it]) }
+        null ->
+            userConfig.messages.help.keys
+                .filter { sender.hasPluginPermission(it.replace("-", ".")) || it == "header"}
+                .forEach { sender.sendMessage(userConfig.messages.help[it]) }
         in userConfig.messages.help.keys - "header" -> sender.sendMessage(userConfig.messages.help[args[0]])
         else -> throw AssertionError()
     }

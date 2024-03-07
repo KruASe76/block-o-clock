@@ -13,6 +13,13 @@ commands:
         usage: |-
             §7Run §6/help <command> [n] §7to get page n of help
             §a/<command> §6help §a[command]§r - Show help for given command, for available commands otherwise
+            §a/<command> §6list §a<nearest|ordered> [page=1]§r - List all clocks in the world (with IDs) with given sorting
+            §a/<command> §6create §a<*settings>§r - Create new clock in the world (and print its ID)
+            §a/<command> §6delete §a<id>§r - Delete the clock (and fill it with air)
+            §a/<command> §6start §a<id>§r - Start stopped clock
+            §a/<command> §6stop §a<id>§r - Stop the clock (won't update until calling §a/boc §6start§r on it)
+            §a/<command> §6set time §a<id> <HH:mm:ss.tt>§r - Set given time on §enon-synced§r clock (if the time unit is not displayed its value can be just zeros)
+            §a/<command> §6set direction §a<id> <up|down>§r - Set given direction on §enon-synced§r clock
             §a/<command> §6reload§r - Reload config
             §cWARNING: §eCommands listed here might be unavailable for you, to get help for available commands run §a/<command> help
         aliases:

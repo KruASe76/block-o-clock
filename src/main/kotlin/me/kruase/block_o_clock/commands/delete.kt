@@ -11,14 +11,8 @@ fun delete(sender: CommandSender, args: List<String>) {
 
     assert(args.size == 1)
 
-    try {
-        sender.sendMessage(
-            userConfig.messages.info["clock-deleted"]
-                ?.replace("{clock}", BOCClockManager.delete(args[0].toInt()))
-        )
-    } catch (e: IllegalStateException) {
-        throw IllegalStateException(
-            userConfig.messages.error["nonexistent-clock"] ?: "Error: nonexistent-clock"
-        )
-    }
+    sender.sendMessage(
+        userConfig.messages.info["clock-deleted"]
+            ?.replace("{clock}", BOCClockManager.delete(args[0].toInt()))
+    )
 }
