@@ -1,5 +1,5 @@
 default-font-size: 3
-list-page-size: 5
+list-page-size: 8
 messages: # Can be used to add translation
     dimension:
         overworld: Overworld
@@ -7,7 +7,8 @@ messages: # Can be used to add translation
         end: End
         custom: Custom # for "custom" dimension (probably useless)
     info: # To turn off certain messages leave the field empty (not empty quotes!)
-        clock-list-header: §7-------- §6[§aBlockOClock§6] §7--------------------------
+        clock-list-header: '§7-------- §6[§aClock list (page {current}/{total})§6] §7--------------------------'
+        clock-list-footer: §7Use §a/boc §6list §a... n§7 to get to the page §6n§7 of clock list
         clock-created: Created {clock}
         clock-deleted: Deleted {clock}
         clock-started: Started {clock}
@@ -21,7 +22,7 @@ messages: # Can be used to add translation
         synced-clock-set: Unable to change synced clock settings!
         another-clock-at-location: Clock ID {id} already exists at this location!
     help: # Not intended to be edited (unless adding translation)
-        header: §7-------- §6[§aBlockOClock§6] §7--------------------------
+        header: §7-------- §6[§aBlockOClock§6] §7-------------------------
         help: §a/boc §6help §a[command]§r - Show help for given command, for available commands otherwise
         list: §a/boc §6list §a<nearest|ordered> [page=1]§r - List all clocks in the world (with IDs) with given sorting
         create: §a/boc §6create §a<*settings>§r - Create new clock in the world (and print its ID)

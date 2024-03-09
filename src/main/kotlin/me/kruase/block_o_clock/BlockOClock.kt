@@ -15,6 +15,8 @@ class BlockOClock : JavaPlugin() {
 
         getCommand("blockoclock")!!.setExecutor(BOCCommands())
 
+        server.pluginManager.registerEvents(BOCEvents(), instance)
+
         BOCClockManager.run()
     }
 }

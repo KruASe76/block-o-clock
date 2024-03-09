@@ -142,6 +142,9 @@ object BOCClockManager {
         }
     }
 
+    fun isInClock(location: Location): Boolean =
+        clocks.values.any { it.isInClock(location) }
+
     private fun assertIdExists(id: Int) {
         if (id !in clocks)
             throw IllegalStateException(
@@ -252,9 +255,11 @@ abstract class BOCClock(
         grid = newGrid
     }
 
-    fun destroy() {
+    fun destroy() =
         blockLocations.flatten().forEach { it.block.type = Material.AIR }
-    }
+
+    fun isInClock(location: Location): Boolean =
+        location in blockLocations.flatten()
 }
 
 
@@ -344,6 +349,8 @@ enum class Sign(val raw: Int) {
                 else -> throw IllegalArgumentException()
             }
         }
+
+        val options = listOf("+", "-")
     }
 }
 

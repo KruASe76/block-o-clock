@@ -6,7 +6,7 @@
 
     <groupId>me.kruase</groupId>
     <artifactId>block-o-clock</artifactId>
-    <version>0.5</version>
+    <version>0.6</version>
     <packaging>jar</packaging>
 
     <name>BlockOClock</name>

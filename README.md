@@ -23,8 +23,8 @@ A Spigot (Bukkit) Minecraft plugin that allows to create clocks of blocks in the
   - time
   - direction
 - [ ] Clock info serialization into custom config to keep running after server restart
-- [ ] Handy tab-completion
-- [ ] Clock protection (players cannot break clock's blocks)
+- [x] Handy tab-completion
+- [x] Clock protection (players cannot break clock's blocks)
 
 
 ## Usage

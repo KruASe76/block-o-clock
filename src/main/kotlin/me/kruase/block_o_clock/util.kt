@@ -14,8 +14,8 @@ fun <T> List<List<T>>.transpose(): List<List<T>> {
 }
 
 
-const val NANO_TICK_SCALE = 10000000
-const val NANOS_PER_TICK = 50000000
+const val NANO_TICK_SCALE = 10_000_000
+const val NANOS_PER_TICK = 50_000_000
 const val TICKS_PER_SECOND = 20
 const val SECONDS_PER_MINUTE = 60
 const val MINUTES_PER_HOUR = 60
@@ -47,8 +47,15 @@ fun LocalTime.minusTicks(ticksToSubtract: Long): LocalTime {
     return plusTicks(-ticksToSubtract)
 }
 
-val LocalTime.ticks
+val LocalTime.ticks: LocalTime
     get() = withNano(nano / NANOS_PER_TICK * NANO_TICK_SCALE)
+
+val LocalTime.normalized: LocalTime
+    get() {
+        assert(nano < NANO_TICK_SCALE * TICKS_PER_SECOND)
+
+        return withNano(nano / NANO_TICK_SCALE * NANOS_PER_TICK)
+    }
 
 
 fun CommandSender.hasPluginPermission(name: String): Boolean {
@@ -56,21 +63,25 @@ fun CommandSender.hasPluginPermission(name: String): Boolean {
 }
 
 
-val Environment.normalName: String  // without NORMAL lol
-    get() = when (this) {
-        Environment.NORMAL -> "overworld"
-        Environment.NETHER -> "nether"
-        Environment.THE_END -> "end"
-        Environment.CUSTOM -> "custom"
-    }
+val environmentToNormalName: Map<Environment, String> =
+    mapOf(
+        Environment.NORMAL to "overworld",
+        Environment.NETHER to "nether",
+        Environment.THE_END to "end",
+        Environment.CUSTOM to "custom"
+    )
+val normalNameToEnvironment: Map<String, Environment> =
+    environmentToNormalName.entries.associate { (key, value) -> value to key }
+
+val Environment.normalName: String  // actually without NORMAL lol
+    get() = environmentToNormalName[this]!!
 
 fun environmentByNormalName(normalName: String): Environment =
-    when (normalName.lowercase()) {
-        "overworld" -> Environment.NORMAL
-        "nether" -> Environment.NETHER
-        "end" -> Environment.THE_END
-        "custom" -> Environment.CUSTOM
-        else -> throw IllegalArgumentException()
+    normalName.lowercase().let {
+        when (it) {
+            in normalNameToEnvironment.keys -> normalNameToEnvironment[it]!!
+            else -> throw IllegalArgumentException()
+        }
     }
 
 val Location.fancyString: String  // example: Nether, XYZ: 42 69 -777
@@ -87,3 +98,7 @@ val Location.fancyString: String  // example: Nether, XYZ: 42 69 -777
                         "${ChatColor.GOLD}${x.toInt()} ${ChatColor.AQUA}${y.toInt()} ${ChatColor.YELLOW}${z.toInt()}" +
                         "${ChatColor.RESET}"
             }
+
+
+val clockSections = listOf("HH", "mm", "ss", "SS")
+val clockSectionNames = listOf("hour", "min", "sec", "tick")
