@@ -30,7 +30,7 @@ fun LocalTime.plusTicks(ticksToAdd: Long): LocalTime {
     val currentTicks = hour * TICKS_PER_HOUR +
             minute * TICKS_PER_MINUTE +
             second * TICKS_PER_SECOND +
-            nano / NANOS_PER_TICK
+            nano / NANO_TICK_SCALE
     val newTicks = ((ticksToAdd % TICKS_PER_DAY).toInt() + currentTicks + TICKS_PER_DAY) % TICKS_PER_DAY
 
     if (newTicks == currentTicks) return this
@@ -49,13 +49,6 @@ fun LocalTime.minusTicks(ticksToSubtract: Long): LocalTime {
 
 val LocalTime.ticks: LocalTime
     get() = withNano(nano / NANOS_PER_TICK * NANO_TICK_SCALE)
-
-val LocalTime.normalized: LocalTime
-    get() {
-        assert(nano < NANO_TICK_SCALE * TICKS_PER_SECOND)
-
-        return withNano(nano / NANO_TICK_SCALE * NANOS_PER_TICK)
-    }
 
 
 fun CommandSender.hasPluginPermission(name: String): Boolean {

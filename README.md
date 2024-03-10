@@ -22,9 +22,10 @@ A Spigot (Bukkit) Minecraft plugin that allows to create clocks of blocks in the
 - [x] Non-synced clock settings
   - time
   - direction
-- [ ] Clock info serialization into custom config to keep running after server restart
 - [x] Handy tab-completion
 - [x] Clock protection (players cannot break clock's blocks)
+- [ ] Clock info serialization into custom config to keep running after server restart
+  - **Temporary behaviour: deleting all clocks before plugin disable ([configurable](#configuration-default))**
 
 
 ## Usage
@@ -63,7 +64,8 @@ A Spigot (Bukkit) Minecraft plugin that allows to create clocks of blocks in the
 
 - Default `digital` font size
 - `/boc list` page size
-- Plugin messages [WIP]
+- **Temporal:** whether to delete all clocks before plugin disable
+- Plugin messages
   - info
   - error
   - help

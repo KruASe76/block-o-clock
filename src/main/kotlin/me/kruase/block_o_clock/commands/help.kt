@@ -8,7 +8,7 @@ import org.bukkit.command.CommandSender
 fun help(sender: CommandSender, args: List<String>) {
     if (!sender.hasPluginPermission("help")) throw UnsupportedOperationException()
 
-    assert(args.size <= 1)
+    require(args.size <= 1)
 
     when (args.getOrNull(0)) {
         null ->
@@ -16,6 +16,6 @@ fun help(sender: CommandSender, args: List<String>) {
                 .filter { sender.hasPluginPermission(it.replace("-", ".")) || it == "header"}
                 .forEach { sender.sendMessage(userConfig.messages.help[it]) }
         in userConfig.messages.help.keys - "header" -> sender.sendMessage(userConfig.messages.help[args[0]])
-        else -> throw AssertionError()
+        else -> throw IllegalArgumentException()
     }
 }

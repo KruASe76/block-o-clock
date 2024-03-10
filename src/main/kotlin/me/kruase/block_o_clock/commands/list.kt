@@ -12,10 +12,10 @@ import org.bukkit.entity.Player
 fun list(sender: CommandSender, args: List<String>) {
     if (!sender.hasPluginPermission("list")) throw UnsupportedOperationException()
 
-    assert(args.size in 1..2)
+    require(args.size <= 2)
 
-    val sorting = ListSorting.valueOf(args[1].uppercase())
-    val page = args.getOrNull(2)?.toInt() ?: 1
+    val sorting = args.getOrNull(0)?.uppercase()?.let { ListSorting.valueOf(it) } ?: ListSorting.ORDERED
+    val page = args.getOrNull(1)?.toInt() ?: 1
 
     val baseLocation =
         when (sender) {
@@ -23,15 +23,19 @@ fun list(sender: CommandSender, args: List<String>) {
             else -> instance.server.worlds[0].spawnLocation
         }
 
-    val (clockList, totalPages) = BOCClockManager.list(sorting, page, baseLocation)
-
-    sender.sendMessage(
-        "${
-            userConfig.messages.info["clock-list-header"]
-                ?.replace("{current}", page.toString())
-                ?.replace("{total}", totalPages.toString())
-        }\n${clockList.joinToString("\n")}\n${
-            userConfig.messages.info["clock-list-footer"]
-        }"
-    )
+    BOCClockManager.listClocks(sorting, page, baseLocation)
+        .let { (clockList, totalPages) ->
+            listOf(
+                userConfig.messages.info["clock-list-header"]
+                    ?.replace("{current}", page.toString())
+                    ?.replace("{total}", totalPages.toString()),
+                clockList.joinToString("\n"),
+                userConfig.messages.info["clock-list-footer"]
+            )
+                .filter { !it.isNullOrEmpty() }
+                .let { strings ->
+                    if (strings.isNotEmpty())
+                        sender.sendMessage(strings.joinToString("\n"))
+                }
+        }
 }

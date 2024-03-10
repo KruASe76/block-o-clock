@@ -9,10 +9,12 @@ import org.bukkit.command.CommandSender
 fun delete(sender: CommandSender, args: List<String>) {
     if (!sender.hasPluginPermission("delete")) throw UnsupportedOperationException()
 
-    assert(args.size == 1)
+    require(args.size == 1)
 
-    sender.sendMessage(
-        userConfig.messages.info["clock-deleted"]
-            ?.replace("{clock}", BOCClockManager.delete(args[0].toInt()))
-    )
+    BOCClockManager.deleteClock(args[0].toInt())
+        .let { clockString ->
+            userConfig.messages.info["clock-deleted"]
+                ?.replace("{clock}", clockString)
+                ?.let { sender.sendMessage(it) }
+        }
 }

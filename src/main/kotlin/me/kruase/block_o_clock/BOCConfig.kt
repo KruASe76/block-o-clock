@@ -7,6 +7,7 @@ import java.io.File
 data class BOCConfig(private val config: FileConfiguration) {
     val defaultFontSize = config.getInt("default-font-size")
     val listPageSize = config.getInt("list-page-size")
+    val deleteOnDisable = config.getBoolean("delete-on-disable")
     val messages = MessagesConfig(config)
 }
 

@@ -1,5 +1,6 @@
 default-font-size: 3
 list-page-size: 8
+delete-on-disable: true
 messages: # Can be used to add translation
     dimension:
         overworld: Overworld
@@ -7,7 +8,7 @@ messages: # Can be used to add translation
         end: End
         custom: Custom # for "custom" dimension (probably useless)
     info: # To turn off certain messages leave the field empty (not empty quotes!)
-        clock-list-header: '§7-------- §6[§aClock list (page {current}/{total})§6] §7--------------------------'
+        clock-list-header: '§7-------- §6[§aClock list (page {current}/{total})§6] §7----------------'
         clock-list-footer: §7Use §a/boc §6list §a... n§7 to get to the page §6n§7 of clock list
         clock-created: Created {clock}
         clock-deleted: Deleted {clock}

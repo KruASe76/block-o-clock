@@ -11,18 +11,16 @@ import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
 import java.time.DateTimeException
 import java.time.ZoneId
-import java.time.format.DateTimeParseException
-import kotlin.math.ceil
 
 
 class BOCCommands : TabExecutor {
     private val digitOptions = listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
     private val digitOptionsExtended = listOf("", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
     private val listSortingOptions = ListSorting.entries.map { it.name.lowercase() }
-    private val dimensionOptions = normalNameToEnvironment.keys.toList()
+    private val dimensionOptions = normalNameToEnvironment.keys.toList() - "custom"
     private val signOptions = Sign.options
     private val axisOptions = Axis.entries.map { it.name.lowercase() }
-    private val clockSectionOptions = clockSections
+    private val clockSectionOptions = clockSectionNames
     private val blockOptions =
         Material.entries
             .filter { it.isBlock && "LEGACY" !in it.name }
@@ -31,8 +29,7 @@ class BOCCommands : TabExecutor {
     private val fontTypeOptions = FontType.entries.map { it.name.lowercase() }
     private val setOptions = SetOption.entries.map { it.name.lowercase() }
     private val clockDirectionOptions = ClockDirection.entries.map { it.name.lowercase() }
-    private val defaultTimePattern = listOf("00:", "00:", "00.", "00")
-    private val timeCompletionStep = 3
+    private val defaultTimePattern = "00:00:00.00"
 
     override fun onTabComplete(
         sender: CommandSender, command: Command, label: String, args: Array<out String>
@@ -42,13 +39,15 @@ class BOCCommands : TabExecutor {
         return when (fullArgs.getOrNull(0)) {
             null ->
                 userConfig.messages.help.keys
-                    .filter { sender.hasPluginPermission(it.split("-")[0]) } - "header"
+                    .map { it.split("-")[0] }
+                    .filter { sender.hasPluginPermission(it) } - "header"
             "help" ->
                 if (!sender.hasPluginPermission(args[0])) emptyList()
                 else when (fullArgs.getOrNull(1)) {
                     null ->
                         userConfig.messages.help.keys
-                            .filter { sender.hasPluginPermission(it.split("-")[0]) } - "header"
+                            .map { it.split("-")[0] }
+                            .filter { sender.hasPluginPermission(it) } - "header"
                     else -> emptyList()
                 }
             "list" ->
@@ -56,7 +55,8 @@ class BOCCommands : TabExecutor {
                 else when (fullArgs.getOrNull(1)) {
                     null -> listSortingOptions
                     in listSortingOptions ->
-                        if (fullArgs.getOrNull(2) == null) digitOptionsExtended.map { args[2] + it } - ""
+                        if (fullArgs.getOrNull(2) == null && (args[2].toIntOrNull() != null || args[2] == ""))
+                            digitOptionsExtended.map { args[2] + it } - ""
                         else emptyList()
                     else -> emptyList()
                 }
@@ -65,36 +65,24 @@ class BOCCommands : TabExecutor {
                 else when (fullArgs.getOrNull(1)) {
                     null -> dimensionOptions
                     in dimensionOptions ->
-                        if (!fullArgs.drop(2).takeLast(3).all { it.toIntOrNull() != null })
+                        if (!args.drop(2).take(3).all { it.toIntOrNull() != null || it == "" || it == "~" })
                             emptyList()
                         else when (fullArgs.getOrNull(4)) {
                             null ->
                                 when (sender) {
-                                    is Player -> targetBlockCompletion(sender, fullArgs.drop(2).takeLast(3))
+                                    is Player -> targetBlockCompletion(sender, args.drop(2))
                                     else -> emptyList()
                                 }
                             else ->
     when (fullArgs.getOrNull(5)) {
         null ->
-            when (args[5].length) {
-                0 -> signOptions
-                1, 2 ->
-                    if (args[5][0].toString() in signOptions) axisOptions
-                    else emptyList()
-                else -> emptyList()
-            }
+            axisOptions.flatMap { axis -> signOptions.map { sign -> sign + axis } }
         else ->
             if (!(args[5].length == 2 && args[5][0].toString() in signOptions && args[5][1].toString() in axisOptions))
                 emptyList()
             else when (fullArgs.getOrNull(6)) {
                 null ->
-                    when (args[6].length) {
-                        0 -> signOptions
-                        1, 2 ->
-                            if (args[6][0].toString() in signOptions) axisOptions
-                            else emptyList()
-                        else -> emptyList()
-                    }
+                    (axisOptions - args[5][1].toString()).flatMap { axis -> signOptions.map { sign -> sign + axis } }
                 else ->
                     if (
                         !(
@@ -112,25 +100,20 @@ class BOCCommands : TabExecutor {
     when (fullArgs.getOrNull(9)) {
         null ->
             when (args[9].length) {
-                0 -> signOptions + "none"
-                1 ->
-                    if (args[9][0].toString() in signOptions || "none".startsWith(args[9]))
-                        digitOptions.take(2) + "none"  // suggesting only 0 and 1
-                    else emptyList()
-                2 ->
-                    if (
-                        args[9][0].toString() in signOptions && args[9][1].toString() in digitOptions ||
-                        "none".startsWith(args[9])
-                    )
-                        digitOptions + "none"
-                    else emptyList()
+                0, 1, 2 ->
+                    signOptions
+                        .flatMap { signChar ->
+                            digitOptions.take(2).flatMap { digit1 ->
+                                digitOptions.map { digit2 -> signChar + digit1 + digit2 }
+                            }
+                        } + "none"
                 3, 4, 5 ->
                     if (
                         args[9][0].toString() in signOptions &&
-                        args[9][1].toString() in digitOptions && args[9][2].toString() in digitOptions ||
-                        "none".startsWith(args[9])
+                        args[9][1].toString() in digitOptions && args[9][2].toString() in digitOptions
                     )
-                        listOf(":15", ":30", ":45") + "none"  // mostly used
+                        listOf(":15", ":30", ":45").map { args[9] + it }  // most used
+                    else if ("none".startsWith(args[9])) listOf("none")
                     else emptyList()
                 else -> emptyList()
             }
@@ -147,16 +130,19 @@ class BOCCommands : TabExecutor {
                                 when (fullArgs.getOrNull(12)) {
                                     null -> fontTypeOptions
                                     FontType.DIGITAL.name.lowercase() ->
-                                        if (fullArgs.getOrNull(13) == null)
-                                            digitOptionsExtended.map { args[13] + it } - ""
-                                    else emptyList()
+                                        if (
+                                            fullArgs.getOrNull(13) == null &&
+                                            (args[13].toIntOrNull() != null || args[13] == "")
+                                        )
+                                            digitOptionsExtended.map { args[13] + it } - setOf("", "0", "1", "2")
+                                        else emptyList()
                                     else -> emptyList()
                                 }
                             else -> emptyList()
                         }
                     else -> emptyList()
                 }
-            } catch (e: DateTimeParseException) {
+            } catch (e: DateTimeException) {
                 emptyList()
             }
     }
@@ -171,39 +157,38 @@ class BOCCommands : TabExecutor {
                 }
             "delete", "start", "stop" ->
                 if (!sender.hasPluginPermission(args[0])) emptyList()
-                else if (fullArgs.getOrNull(1) == null) digitOptionsExtended.map { args[1] + it } - ""
+                else if (fullArgs.getOrNull(1) == null && (args[1].toIntOrNull() != null || args[1] == ""))
+                    digitOptionsExtended.map { args[1] + it } - ""
                 else emptyList()
             "set" ->
                 if (!sender.hasPluginPermission(args[0])) emptyList()
                 else when (fullArgs.getOrNull(1)) {
                     null -> setOptions
                     SetOption.TIME.name.lowercase() ->
-                        if (fullArgs.getOrNull(2) == null)
-                            try {
-                                if (  // the magic starts TODO: test this!!!
-                                    Regex(
-                                        defaultTimePattern
-                                            .joinToString("")
-                                            .slice(args[2].indices)
-                                            .replace("0", "\\d")
-                                            .replace(".", "\\.")
-                                    )
-                                        .matches(args[2])
+                        if (fullArgs.getOrNull(2) == null && (args[2].toIntOrNull() != null || args[2] == ""))
+                            digitOptionsExtended.map { args[2] + it } - ""
+                        else try {
+                            if (  // here was some magic (check commit 64af7c2, i'm proud i wrote that)
+                                args[2].toIntOrNull() != null &&
+                                fullArgs.getOrNull(3) == null &&
+                                Regex(
+                                    defaultTimePattern
+                                        .slice(args[3].indices)
+                                        .replace("0", "\\d")
+                                        .replace(".", "\\.")
                                 )
-                                    listOf(
-                                        args[2] +
-                                                defaultTimePattern
-                                                    .take(args[2].length / timeCompletionStep)
-                                                    .joinToString("")
-                                                    .drop(args[2].length)
-                                    )
-                                else emptyList()
-                            } catch (e: IndexOutOfBoundsException) {
-                                emptyList()
-                            }
-                        else emptyList()
+                                    .matches(args[3])
+                            )
+                                listOf(args[3] + defaultTimePattern.drop(args[3].length))
+                            else emptyList()
+                        } catch (e: IndexOutOfBoundsException) {
+                            emptyList()
+                        }
                     SetOption.DIRECTION.name.lowercase() ->
-                        if (fullArgs.getOrNull(2) == null) clockDirectionOptions
+                        if (fullArgs.getOrNull(2) == null && (args[2].toIntOrNull() != null || args[2] == ""))
+                            digitOptionsExtended.map { args[2] + it } - ""
+                        else if (args[2].toIntOrNull() != null && fullArgs.getOrNull(3) == null)
+                            clockDirectionOptions
                         else emptyList()
                     else -> emptyList()
                 }
@@ -227,11 +212,11 @@ class BOCCommands : TabExecutor {
 
                     userConfig = instance.getUserConfig()
                 }
-                else -> throw AssertionError()
+                else -> throw IllegalArgumentException()
             }
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             when (e) {
-                is AssertionError, is IllegalArgumentException, is NoSuchElementException, is DateTimeException ->
+                is IllegalArgumentException, is NoSuchElementException, is DateTimeException ->
                     sender.sendMessage(
                         "${ChatColor.RED}${userConfig.messages.error["invalid-command"] ?: "Error: invalid-command"}"
                     )

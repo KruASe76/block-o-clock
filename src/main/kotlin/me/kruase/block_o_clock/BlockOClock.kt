@@ -19,4 +19,8 @@ class BlockOClock : JavaPlugin() {
 
         BOCClockManager.run()
     }
+
+    override fun onDisable() {
+        BOCClockManager.stop()
+    }
 }

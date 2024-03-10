@@ -12,13 +12,12 @@ import java.time.format.DateTimeFormatter
 
 
 // boc create <dim> <xyz> ±<x|y|z> ±<x|y|z> <hour|min|sec|tick> <hour|min|sec|tick> <±hh[:mm]|none> <block|none> <block|none> <font> [size=3]
-// /boc create overworld ~ ~ ~ +x -y hour tick +03 diamond_block netherite_block minecraft  TODO: remove
 fun create(sender: CommandSender, args: List<String>) {
     if (!sender.hasPluginPermission("create")) throw UnsupportedOperationException()
 
-    assert(args.size in 12..13)
+    require(args.size in 12..13)
 
-    assert(args[6] in clockSectionNames && args[7] in clockSectionNames)
+    require(args[6] in clockSectionNames && args[7] in clockSectionNames)
 
     val coords: List<Double> =
         when (sender) {
@@ -41,12 +40,12 @@ fun create(sender: CommandSender, args: List<String>) {
 
     val widthDirection = AxisDirection(Pair(Sign from args[4][0], Axis.valueOf(args[4][1].uppercase())))
     val heightDirection = AxisDirection(Pair(Sign from args[5][0], Axis.valueOf(args[5][1].uppercase())))
-    assert(widthDirection.axis != heightDirection.axis)
+    require(widthDirection.axis != heightDirection.axis)
 
     val timeFormatter = DateTimeFormatter.ofPattern(
         clockSections
             .slice(clockSectionNames.indexOf(args[6])..clockSectionNames.indexOf(args[7]))
-            .also { assert(it.isNotEmpty()) }
+            .also { require(it.isNotEmpty()) }
             .joinToString(":")
             .replace(":SS", ".SS")
     )
@@ -54,21 +53,24 @@ fun create(sender: CommandSender, args: List<String>) {
     val timeZoneId = if (args[8] == "none") null else ZoneId.of(args[8])
 
     val foregroundMaterial =
-        if (args[9] == "none") null else Material.matchMaterial(args[9]) ?: throw AssertionError()
+        if (args[9] == "none") null else Material.matchMaterial(args[9]) ?: throw IllegalArgumentException()
     val backgroundMaterial =
-        if (args[10] == "none") null else Material.matchMaterial(args[10]) ?: throw AssertionError()
+        if (args[10] == "none") null else Material.matchMaterial(args[10]) ?: throw IllegalArgumentException()
 
     val fontType = FontType.valueOf(args[11].uppercase())
     val fontSize = args.getOrNull(12)?.toInt() ?: userConfig.defaultFontSize
+    require(fontSize >= minFontSize)
 
-    sender.sendMessage(
-        userConfig.messages.info["clock-created"]
-            ?.replace(
-                "{clock}",
-                BOCClockManager.create(
-                    location, widthDirection, heightDirection, timeFormatter, timeZoneId,
-                    foregroundMaterial, backgroundMaterial, fontType, fontSize
-                )
-            )
+    BOCClockManager.createClock(
+        location, widthDirection, heightDirection, timeFormatter, timeZoneId,
+        foregroundMaterial, backgroundMaterial, fontType, fontSize
     )
+        .let { clockString ->
+            userConfig.messages.info["clock-created"]
+                ?.replace("{clock}", clockString)
+                ?.let { sender.sendMessage(it) }
+        }
 }
+
+
+const val minFontSize = 3

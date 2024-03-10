@@ -9,10 +9,12 @@ import org.bukkit.command.CommandSender
 fun stop(sender: CommandSender, args: List<String>) {
     if (!sender.hasPluginPermission("stop")) throw UnsupportedOperationException()
 
-    assert(args.size == 1)
+    require(args.size == 1)
 
-    sender.sendMessage(
-        userConfig.messages.info["clock-stopped"]
-            ?.replace("{clock}", BOCClockManager.stop(args[0].toInt()))
-    )
+    BOCClockManager.stopClock(args[0].toInt())
+        .let { clockString ->
+            userConfig.messages.info["clock-stopped"]
+                ?.replace("{clock}", clockString)
+                ?.let { sender.sendMessage(it) }
+        }
 }

@@ -13,20 +13,27 @@ import kotlin.math.ceil
 
 object BOCClockManager {
     private val clocks = mutableMapOf<Int, BOCClock>()
+    private var taskId = 0
 
     fun run() {
-        instance.server.scheduler.scheduleSyncRepeatingTask(
+        taskId = instance.server.scheduler.scheduleSyncRepeatingTask(
             instance,
             Runnable(::update),
             0L, 1L
         )
     }
 
+    fun stop() {
+        instance.server.scheduler.cancelTask(taskId)
+
+        if (userConfig.deleteOnDisable) clocks.values.forEach(BOCClock::destroy)
+    }
+
     private fun update() {
         clocks.values.forEach(BOCClock::update)
     }
 
-    fun create(
+    fun createClock(
         location: Location,
         widthDirection: AxisDirection,
         heightDirection: AxisDirection,
@@ -72,27 +79,28 @@ object BOCClockManager {
             }
     }
 
-    fun delete(id: Int): String {
+    fun deleteClock(id: Int): String {
         assertIdExists(id)
 
         clocks[id]!!.destroy()
         clocks.remove(id).let { return it!!.fancyString }
     }
 
-    fun list(sorting: ListSorting, page: Int, baseLocation: Location): Pair<List<String>, Int> {
+    fun listClocks(sorting: ListSorting, page: Int, baseLocation: Location): Pair<List<String>, Int> {
         return Pair(
             when(sorting) {
                 ListSorting.ORDERED -> clocks.values.toList()
                 ListSorting.NEAREST ->
                     clocks.values.sortedBy { clock -> baseLocation.distanceSquared(clock.location) }
             }
-                .slice(userConfig.listPageSize * (page - 1) until userConfig.listPageSize * page)
+                .drop(userConfig.listPageSize * (page - 1))
+                .take(userConfig.listPageSize)
                 .map(BOCClock::fancyString),
             ceil(clocks.size / userConfig.listPageSize.toDouble()).toInt()  // total pages
         )
     }
 
-    fun start(id: Int): String {
+    fun startClock(id: Int): String {
         assertIdExists(id)
 
         clocks[id]!!.let {
@@ -102,7 +110,7 @@ object BOCClockManager {
         }
     }
 
-    fun stop(id: Int): String {
+    fun stopClock(id: Int): String {
         assertIdExists(id)
 
         clocks[id]!!.let {
@@ -112,7 +120,7 @@ object BOCClockManager {
         }
     }
 
-    fun setTime(id: Int, time: LocalTime): String {
+    fun setTimeOnClock(id: Int, time: LocalTime): String {
         assertIdExists(id)
 
         clocks[id]!!.let {
@@ -127,7 +135,7 @@ object BOCClockManager {
         }
     }
 
-    fun setDirection(id: Int, direction: ClockDirection): String {
+    fun setDirectionOnClock(id: Int, direction: ClockDirection): String {
         assertIdExists(id)
 
         clocks[id]!!.let {
@@ -228,8 +236,6 @@ abstract class BOCClock(
     abstract fun update()
 
     protected fun update(time: LocalTime, isInitial: Boolean) {
-        if (!isRunning && !isInitial) return
-
         val newDisplay = time.format(timeFormatter)
 
         if (display == newDisplay && !isInitial) return
@@ -283,6 +289,8 @@ class SyncedClock(
     override var isRunning: Boolean = true
 
     override fun update() {
+        if (!isRunning) return
+
         super.update(time = LocalTime.now(timeZoneId).ticks, isInitial = false)
     }
 
@@ -309,14 +317,19 @@ class NonSyncedClock(
     override var isRunning: Boolean = false
 
     var time: LocalTime = LocalTime.MIN
+        set(value) {
+            field = value
+            super.update(time = time, isInitial = false)
+        }
     var direction: ClockDirection = ClockDirection.UP
 
     override fun update() {
+        if (!isRunning) return
+
         time = when(direction) {
             ClockDirection.UP -> time.plusTicks(1L)
             ClockDirection.DOWN -> time.minusTicks(1L)
         }
-        super.update(time = time, isInitial = false)
     }
 
     init {
