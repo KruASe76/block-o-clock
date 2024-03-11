@@ -95,7 +95,8 @@ class BOCCommands : TabExecutor {
                         null -> clockSectionOptions
                         in clockSectionOptions ->
                             when (fullArgs.getOrNull(8)) {
-                                null -> clockSectionOptions
+                                null -> clockSectionOptions.drop(clockSectionOptions.indexOf(args[7]))
+                                    // not suggesting units before the first entered unit
                                 in clockSectionOptions ->
     when (fullArgs.getOrNull(9)) {
         null ->

@@ -16,11 +16,8 @@ object BOCClockManager {
     private var taskId = 0
 
     fun run() {
-        taskId = instance.server.scheduler.scheduleSyncRepeatingTask(
-            instance,
-            Runnable(::update),
-            0L, 1L
-        )
+        taskId = instance.server.scheduler
+            .scheduleSyncRepeatingTask(instance, Runnable(::update), 0L, 1L)
     }
 
     fun stop() {
@@ -91,7 +88,14 @@ object BOCClockManager {
             when(sorting) {
                 ListSorting.ORDERED -> clocks.values.toList()
                 ListSorting.NEAREST ->
-                    clocks.values.sortedBy { clock -> baseLocation.distanceSquared(clock.location) }
+                    clocks.values
+                        .sortedBy { clock ->
+                            try {
+                                baseLocation.distanceSquared(clock.location)
+                            } catch (e: IllegalArgumentException) {
+                                Double.POSITIVE_INFINITY
+                            }
+                        }
             }
                 .drop(userConfig.listPageSize * (page - 1))
                 .take(userConfig.listPageSize)
@@ -236,6 +240,8 @@ abstract class BOCClock(
     abstract fun update()
 
     protected fun update(time: LocalTime, isInitial: Boolean) {
+        if (!blockLocations[0][0].isWorldLoaded && !isInitial) return
+
         val newDisplay = time.format(timeFormatter)
 
         if (display == newDisplay && !isInitial) return
@@ -250,10 +256,7 @@ abstract class BOCClock(
             locationList.forEachIndexed { height, location ->
                 if (grid[width][height] != newGrid[width][height])  // update only necessary blocks for optimization
                     (if (newGrid[width][height]) foregroundMaterial else backgroundMaterial)
-                        .let { material ->
-                            if (material != null)
-                                location.block.type = material
-                        }
+                        ?.let { material -> location.block.type = material }
             }
         }
 
